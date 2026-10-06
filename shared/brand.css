@@ -1,0 +1,49 @@
+/* MASii brand foundation — shared by every concept.
+   Sources: MASii Brand Guidelines (8.03.26) + Lev-it/givifi mobile/constants/design-system.ts (v3). */
+
+@font-face{font-family:"Cabinet Grotesk";src:url("assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"General Sans";src:url("assets/fonts/GeneralSans-Variable.woff2") format("woff2");font-weight:200 700;font-display:swap}
+
+:root{
+  /* Foundation (60%) */
+  --black:#101010;
+  --porcelain:#F6F7F2;
+  --white:#FFFFFF;
+  --ink:#101010;
+  --ink-2:#4A5262;      /* the slate headline tone used on the guideline slides */
+  --ink-3:#6B7180;
+  --line:rgba(16,16,16,.09);
+  --card:#F1F2EE;
+
+  /* Main gradient stops */
+  --maya:#6DBCEC;
+  --celadon:#B5DABB;
+  --plum:#E2A7D4;
+  --majorelle:#4E4FE8;
+
+  /* Support (30%) */
+  --real-blue:#4041E5;
+  --fresh-blue:#76D7F6;
+
+  /* Accent (10%) — one word, one highlight, on purpose */
+  --violet:#8273EB;
+  --princess:#E29CCF;
+  --yellow:#FFBE22;
+  --verde:#9ED8B1;
+
+  --grad:linear-gradient(90deg,#6DBCEC 0%,#B5DABB 30%,#C9C3C6 48%,#E2A7D4 68%,#8273EB 85%,#4E4FE8 100%);
+  --grad-text:linear-gradient(90deg,#4FB4EC 0%,#8FCFA2 34%,#D79ACB 66%,#6F62EA 100%); /* deepened for legibility on light */
+  --grad-cool:linear-gradient(90deg,#6DBCEC,#B5DABB);
+  --grad-warm:linear-gradient(90deg,#E2A7D4,#4E4FE8);
+  --grad-soft:linear-gradient(90deg,#B5DABB,#E2A7D4);
+
+  --font-display:"Cabinet Grotesk","Instrument Sans",system-ui,sans-serif;
+  --font-body:"General Sans","Manrope",system-ui,sans-serif;
+
+  --radius-sm:12px;--radius:20px;--radius-lg:28px;
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+}
+
+.grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyebrow{font-family:var(--font-body);font-weight:500;letter-spacing:.22em;text-transform:uppercase;font-size:.78rem;color:var(--ink-3)}

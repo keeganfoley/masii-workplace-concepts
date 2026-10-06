@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MASii Workplace · Best of</title>
+<meta name="description" content="MASii Workplace: company giving as an everyday benefit. Concept E, Best of: an interactive chapter deck that releases into stacked cards.">
+<link rel="preload" href="../../shared/assets/fonts/CabinetGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../shared/brand.css">
+<link rel="stylesheet" href="best.css">
+<link rel="preload" as="image" href="../../shared/assets/img/tier-gradient.webp">
+<link rel="preload" as="image" href="../../shared/assets/img/porcelain-wash.webp">
+</head>
+<body>
+<a class="skip" href="#teams">Skip to the details</a>
+<a class="concept-tag" href="../../index.html"><span aria-hidden="true">←</span> All concepts <b>E · Best of</b></a>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+
+<main class="stack" id="stack">
+
+<!-- ═════════ 0 · THE DECK (hero) ═════════ -->
+<section class="card card--deck" id="story" aria-label="How MASii Workplace works, in four chapters">
+  <header class="masthead">
+    <a class="brand" href="#offer" data-chapter="0" aria-label="MASii Workplace, back to the first chapter"><img src="../../shared/assets/logo/lockup-gradient-light.svg" alt="MASii" width="140" height="40"></a>
+    <span class="brand-tag">Workplace</span>
+  </header>
+
+  <div class="stage" aria-hidden="false">
+    <canvas id="film" aria-hidden="true"></canvas>
+    <div class="shade" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="stip" role="presentation" aria-hidden="true"><b></b><span></span></div>
+
+    <!-- The phone: one per step, handed off like a deck of cards as the chapters glide -->
+    <div class="ph-slot" id="phSlot">
+      <div class="ph" data-step="1" aria-label="App preview, step 1 of 3: choose a cause">
+        <div class="ph-frame"><div class="ph-screen">
+          <div class="ph-status"><span>9:41</span><i class="ph-island"></i><span class="ph-bat"></span></div>
+          <div class="app">
+            <p class="app-k">Step 1 · Your cause</p>
+            <p class="app-h">Choose a <em>cause</em></p>
+            <p class="app-s">Employer-approved options</p>
+            <ul class="causes" role="radiogroup" aria-label="Example causes">
+              <li><button type="button" role="radio" aria-checked="true" class="cause is-on"><img src="../../shared/assets/img/mission-gift-heart.webp" alt="" width="600" height="600"><span><b>Hunger relief</b><small>Example cause</small></span><i></i></button></li>
+              <li><button type="button" role="radio" aria-checked="false" class="cause"><img src="../../shared/assets/img/mission-handshake.webp" alt="" width="600" height="600"><span><b>Community</b><small>Example cause</small></span><i></i></button></li>
+              <li><button type="button" role="radio" aria-checked="false" class="cause"><img src="../../shared/assets/img/mission-heart-message.webp" alt="" width="600" height="600"><span><b>Mental health</b><small>Example cause</small></span><i></i></button></li>
+              <li><button type="button" role="radio" aria-checked="false" class="cause"><img src="../../shared/assets/img/mission-stars.webp" alt="" width="600" height="600"><span><b>Education</b><small>Example cause</small></span><i></i></button></li>
+            </ul>
+            <p class="paid"><span class="paid-dot"></span>Employer-paid access · $0 for you</p>
+            <button type="button" class="app-cta" data-act="cause"><span>Choose this cause</span></button>
+          </div>
+        </div></div>
+      </div>
+      <div class="ph" data-step="2" aria-label="App preview, step 2 of 3: build good habits">
+        <div class="ph-frame"><div class="ph-screen">
+          <div class="ph-status"><span>9:41</span><i class="ph-island"></i><span class="ph-bat"></span></div>
+          <div class="app">
+            <p class="app-k">Step 2 · Your GoodPrint</p>
+            <div class="gp">
+              <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="gpG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7DB7EA"/><stop offset=".35" stop-color="#B9DABF"/><stop offset=".65" stop-color="#DD8ECB"/><stop offset="1" stop-color="#3C44DF"/></linearGradient></defs>
+                <circle cx="60" cy="60" r="50" class="gp-bg"/><circle cx="60" cy="60" r="50" class="gp-fg" pathLength="100"/></svg>
+              <div class="gp-c"><b class="gp-n">3</b><small>Plays this week</small></div>
+            </div>
+            <div class="play">
+              <img src="../../shared/assets/img/mission-target.webp" alt="" width="600" height="600">
+              <span><small>Today’s Play</small><b>A small good action</b></span>
+            </div>
+            <div class="week" aria-hidden="true"><i class="on">M</i><i class="on">T</i><i class="on">W</i><i>T</i><i>F</i><i>S</i><i>S</i></div>
+            <button type="button" class="app-cta" data-act="play"><span>Complete Play</span></button>
+            <span class="mas-pop" aria-hidden="true">+ MAS</span>
+          </div>
+        </div></div>
+      </div>
+      <div class="ph" data-step="3" aria-label="App preview, step 3 of 3: feel rewarded">
+        <div class="ph-frame"><div class="ph-screen">
+          <div class="ph-status"><span>9:41</span><i class="ph-island"></i><span class="ph-bat"></span></div>
+          <div class="app">
+            <p class="app-k">Step 3 · Rewards</p>
+            <div class="mile">
+              <img src="../../shared/assets/img/done-heart.webp" alt="" width="900" height="746">
+              <b>Milestone reached</b><small>Recognition for consistency</small>
+            </div>
+            <div class="mas-row"><span class="mas-coin"></span><span><small>MAS points</small><b>Earned for good deeds</b></span></div>
+            <div class="drop-card"><small>Today’s Drop</small><b>A prize drawing</b><span>Free entry. Not every entry wins.</span></div>
+            <button type="button" class="app-cta" data-act="drop"><span>Enter today’s Drop</span></button>
+          </div>
+        </div></div>
+      </div>
+      <div class="ph-steps" aria-hidden="true"><span class="ph-count"><b>1</b>/3</span><i></i><i></i><i></i><span class="ph-label">Choose a cause</span></div>
+    </div>
+  </div>
+
+  <div class="chapters">
+    <section class="chapter c-offer" id="offer" aria-labelledby="t0">
+      <canvas class="still" aria-hidden="true"></canvas>
+      <div class="copy">
+        <span class="eyebrow">Workplace · The offer</span>
+        <h1 id="t0" class="lines">Company giving. <span class="grad-text">An everyday benefit.</span></h1>
+        <p class="lede lines">Your company funds it. Your people choose causes, build positive habits and access daily reward opportunities.</p>
+        <div class="price-card glow">
+          <span class="pc-label">One monthly contribution</span>
+          <dl>
+            <div class="pc-main"><dt>per covered employee, per month*</dt><dd class="x" data-x="p10" tabindex="0">$<span data-count="10">10</span></dd></div>
+            <div><dt>per year</dt><dd class="x" data-x="p120" tabindex="0">$<span data-count="120">120</span></dd></div>
+            <div><dt>for employees</dt><dd class="x" data-x="p0" tabindex="0">$0</dd></div>
+            <div><dt>added fees</dt><dd class="x" data-x="pnone" tabindex="0">None</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter c-cause" id="cause" aria-labelledby="t1">
+      <canvas class="still" aria-hidden="true"></canvas>
+      <div class="copy">
+        <span class="eyebrow"><b>01</b> / 03 · Choose a cause</span>
+        <h2 id="t1" class="lines">Choose a <span class="grad-text">cause.</span></h2>
+        <p class="lede lines">Employer-approved options. Employees choose among them.</p>
+        <p class="aside">HR or Benefits sponsors. CSR guides the causes. MASii helps employees get started.</p>
+        <p class="try"><span class="hint-dot"></span><span class="hint-fine">Try the phone: pick a cause.</span><span class="hint-touch">Tap the phone to pick a cause.</span></p>
+      </div>
+    </section>
+
+    <section class="chapter c-habits" id="habits" aria-labelledby="t2">
+      <canvas class="still" aria-hidden="true"></canvas>
+      <div class="copy">
+        <span class="eyebrow"><b>02</b> / 03 · Build good habits</span>
+        <h2 id="t2" class="lines">Build good <span class="grad-text">habits.</span></h2>
+        <p class="lede lines">Daily actions and content. GoodPrint tracks personal progress.</p>
+        <ul class="vocab">
+          <li><b>Play</b> a daily action</li>
+          <li><b>Moves</b> good actions</li>
+          <li><b>GoodPrint</b> personal progress</li>
+        </ul>
+        <p class="callout">“Your GoodPrint is showing.”</p>
+      </div>
+    </section>
+
+    <section class="chapter c-reward" id="rewarded" aria-labelledby="t3">
+      <canvas class="still" aria-hidden="true"></canvas>
+      <div class="copy">
+        <span class="eyebrow"><b>03</b> / 03 · Feel rewarded</span>
+        <h2 id="t3" class="lines">Feel <span class="grad-text">rewarded.</span></h2>
+        <p class="lede lines">Milestones and recognition, plus daily reward opportunities.</p>
+        <ul class="vocab">
+          <li><b>MAS</b> points earned for good deeds</li>
+          <li><b>Drop</b> a prize drawing</li>
+        </ul>
+        <p class="fine">Daily reward opportunities do not mean every employee receives a prize.</p>
+      </div>
+    </section>
+  </div>
+
+  <aside class="journey-bar" aria-label="Chapter navigation">
+    <a class="skip-site" href="#teams">Skip to details <span aria-hidden="true">↓</span></a>
+    <nav class="chapter-nav" aria-label="Four chapters">
+      <a href="#offer" data-chapter="0" aria-current="step"><span>01</span><i></i><em>The offer</em></a>
+      <a href="#cause" data-chapter="1"><span>02</span><i></i><em>Causes</em></a>
+      <a href="#habits" data-chapter="2"><span>03</span><i></i><em>Habits</em></a>
+      <a href="#rewarded" data-chapter="3"><span>04</span><i></i><em>Rewards</em></a>
+    </nav>
+    <span class="scroll-cue"><span class="cue-text">Scroll for next</span> <span class="cue-arrow" aria-hidden="true">↓</span></span>
+  </aside>
+</section>
+
+<!-- ═════════ 1 · TEAMS ═════════ -->
+<section class="card card--wash" id="teams" aria-labelledby="teams-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><b class="num">01</b> Who it helps</p>
+      <h2 id="teams-h" class="display" data-lines>One employee benefit. Value across <span class="grad-text">eight teams.</span></h2>
+      <p class="lede" data-lines>Different departments. Different needs. One giving-and-growth experience.</p>
+    </div>
+    <p class="hint"><span class="hint-dot"></span> <span class="hint-fine">Hover</span><span class="hint-touch">Tap</span> a team to flip from the problem to the MASii answer.</p>
+    <div class="teams" id="teamsGrid">
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>01</i><b>People / HR</b><small>Problem</small><span>Low team connection.</span></span><span class="face back"><i>01</i><b>People / HR</b><small>MASii answer</small><span>Make company values part of everyday life.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>02</i><b>Benefits / Rewards</b><small>Problem</small><span>Benefits get forgotten.</span></span><span class="face back"><i>02</i><b>Benefits / Rewards</b><small>MASii answer</small><span>Give employees a benefit they can use all year.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>03</i><b>CSR / Social Impact</b><small>Problem</small><span>Low participation.</span></span><span class="face back"><i>03</i><b>CSR / Social Impact</b><small>MASii answer</small><span>Give staff a say in causes and show funded impact.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>04</i><b>Recognition / Culture</b><small>Problem</small><span>Kindness goes unseen.</span></span><span class="face back"><i>04</i><b>Recognition / Culture</b><small>MASii answer</small><span>Recognize generosity, consistency and milestones.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>05</i><b>Wellbeing</b><small>Problem</small><span>A need for connection.</span></span><span class="face back"><i>05</i><b>Wellbeing</b><small>MASii answer</small><span>Offer uplifting content, reflection and small actions.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>06</i><b>Volunteering</b><small>Problem</small><span>Momentum fades.</span></span><span class="face back"><i>06</i><b>Volunteering</b><small>MASii answer</small><span>Keep people involved between volunteer days.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>07</i><b>Employer Brand</b><small>Problem</small><span>Claims need proof.</span></span><span class="face back"><i>07</i><b>Employer Brand</b><small>MASii answer</small><span>Use approved employee and impact stories in recruiting.</span></span></span></button>
+      <button class="team" type="button" aria-pressed="false"><span class="team-in"><span class="face front"><i>08</i><b>Employee Experience</b><small>Problem</small><span>Too many separate apps.</span></span><span class="face back"><i>08</i><b>Employee Experience</b><small>MASii answer</small><span>Bring giving, growth and rewards into one experience.</span></span></span></button>
+    </div>
+    <p class="roles">HR or Benefits <b>sponsors.</b> CSR <b>guides the causes.</b> MASii <b class="grad-text">helps employees get started.</b></p>
+    <p class="fn">Complements core HR, clinical care, volunteer logistics and grantmaking.</p>
+  </div>
+</section>
+
+<!-- ═════════ 2 · COMPARE ═════════ -->
+<section class="card card--white" id="fit" aria-labelledby="fit-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><b class="num">02</b> How it compares</p>
+      <h2 id="fit-h" class="display" data-lines>How MASii <span class="grad-text">fits</span> alongside existing programs.</h2>
+      <p class="lede" data-lines>One package: charitable giving, personal growth and daily reward opportunities.</p>
+    </div>
+    <div class="compare" role="table" aria-label="Platform comparison">
+      <div class="crow chead" role="row"><span role="columnheader">Platform</span><span role="columnheader">What it provides</span><span role="columnheader">Public pricing</span></div>
+      <div class="crow" role="row"><b role="cell">Benevity / YourCause</b><span role="cell">Giving, matching, volunteering and engagement</span><span role="cell">Contact sales</span></div>
+      <div class="crow" role="row"><b role="cell">Bonterra Deed</b><span role="cell">Giving, volunteering, small actions and gamification</span><span role="cell">Contact sales</span></div>
+      <div class="crow" role="row"><b role="cell">Millie</b><span role="cell">Giving, volunteering, kindness and wellness campaigns</span><span role="cell">Annual custom quote</span></div>
+      <div class="crow" role="row"><b role="cell">Groundswell</b><span role="cell">Giving and matching; volunteering by plan</span><span role="cell">From $8,500/year</span></div>
+      <div class="crow" role="row"><b role="cell">Reward Gateway / Edenred</b><span role="cell">Recognition, rewards, wellbeing and discounts</span><span role="cell">Contact sales</span></div>
+      <div class="crow crow--masii" role="row"><b role="cell">MASii Workplace*</b><span role="cell">Giving, daily growth, progress and personal reward opportunities</span><span role="cell"><strong class="x" data-x="row10" tabindex="0">$10 / employee / month</strong><small>No added program fees</small></span></div>
+    </div>
+    <ul class="why">
+      <li><small>One simple offer</small><span>Giving and app access in one monthly contribution.</span></li>
+      <li><small>A reason to return</small><span>Positive actions, content and personal progress.</span></li>
+      <li><small>Value beyond prizes</small><span>A daily experience that still matters when you do not win.</span></li>
+    </ul>
+    <p class="fn">Software fees are not equivalent to a funded benefit; scope, donations and other fees vary. *MASii is the proposed offer. Competitor pages and listed prices rechecked 16 September 2026.</p>
+  </div>
+</section>
+
+<!-- ═════════ 3 · COST ═════════ -->
+<section class="card card--white card--cost" id="cost" aria-labelledby="cost-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><b class="num">03</b> Cost and return</p>
+      <h2 id="cost-h" class="display" data-lines>What $120 a year <span class="grad-text">means</span> for an employer.</h2>
+      <p class="lede" data-lines>A year-round benefit, with costs the employer can measure.</p>
+    </div>
+    <div class="calc">
+      <div class="calc-main glow">
+        <span class="chip">Illustrative calculator</span>
+        <p class="x-hint"><span class="hint-fine">Hover</span><span class="hint-touch">Tap</span> any figure to see how it’s calculated.</p>
+        <label for="headcount" class="calc-label">Covered employees</label>
+        <output class="calc-n x" data-x="n" tabindex="0" id="nOut" for="headcount">250</output>
+        <input type="range" id="headcount" min="0" max="1000" step="1" value="518" aria-valuetext="250 employees">
+        <div class="calc-scale" aria-hidden="true"><span>10</span><span>5,000</span></div>
+        <dl class="calc-rows">
+          <div><dt>MASii, one year</dt><dd id="costOut" class="x" data-x="cost" tabindex="0">$30,000</dd></div>
+          <div class="muted"><dt>One volunteer day for the same team<sup>†</sup></dt><dd id="dayOut" class="x" data-x="day" tabindex="0">$93,780</dd></div>
+        </dl>
+        <div class="breakeven">
+          <div class="be-bar x" data-x="be" tabindex="0"><i id="beBar"></i></div>
+          <p id="beText">One retained employee (≈ $30,000) covers all 250 of your employees for a year.</p>
+        </div>
+      </div>
+      <div class="calc-side glow">
+        <figure class="coin3d" aria-hidden="true"><img src="../../shared/assets/img/coin-gold.webp" alt="" width="900" height="834" loading="lazy"></figure>
+        <p class="vs-title">A year of MASii vs one volunteer day</p>
+        <div class="vs">
+          <div class="vs-row x" data-x="vsm" tabindex="0"><span>A year of MASii</span><div class="vs-bar"><i style="--w:.32" class="g"></i></div><b>$<span data-count="120">120</span></b></div>
+          <div class="vs-row x" data-x="vsd" tabindex="0"><span>One volunteer day <small>(wages + benefits)</small></span><div class="vs-bar"><i style="--w:1"></i></div><b>$<span data-count="375.12" data-dec="2">375.12</span></b></div>
+        </div>
+        <p class="vs-big"><b class="x" data-x="pct" tabindex="0"><span data-count="68">68</span>%</b> below the cost equivalent of one 8-hour workday.<sup>†</sup></p>
+        <p class="vs-voice">Keep the volunteer day. <span class="grad-text">Add year-round use.</span></p>
+      </div>
+    </div>
+
+    <div class="engage glow">
+      <div class="engage-top">
+        <p class="eyebrow">Engagement example · 100 employees · $12,000/yr</p>
+        <div class="seg-tabs" role="tablist" aria-label="Engagement mix">
+          <button type="button" role="tab" aria-selected="true" data-mix="deck" class="is-on">Deck example</button>
+          <button type="button" role="tab" aria-selected="false" data-mix="daily">All 50 engaged, 1x daily</button>
+          <span class="seg-ind" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div class="eng">
+        <div class="dots" aria-hidden="true"></div>
+        <ul class="eng-legend"></ul>
+      </div>
+      <div class="eng-stats">
+        <div><b class="x" data-x="engN" tabindex="0"><span id="engN">50</span> of 100</b><small>engage</small></div>
+        <div><b class="x" data-x="engY" tabindex="0">~<span id="engY">13,520</span></b><small>engagements / yr</small></div>
+        <div><b class="x" data-x="engC" tabindex="0"><span class="grad-text">~$<span id="engC">0.89</span></span></b><small>per engagement</small></div>
+      </div>
+      <p class="engage-small" id="engNote">If all 50 engaged employees visited 1x daily: ~$0.66 per engagement.</p>
+    </div>
+    <p class="fn">†BLS, June 2026 U.S. private industry: $46.89/hour × 8 = $375.12 (wages + benefits). Compares labor value, not automatic cash savings; before-tax examples. Calculator figures are illustrative: $120 × covered employees.</p>
+  </div>
+</section>
+
+<!-- ═════════ 4 · RETENTION (dark) ═════════ -->
+<section class="card card--dark" id="retain" aria-labelledby="retain-h">
+  <div class="wrap retain">
+    <p class="eyebrow"><b class="num">04</b> The retention math</p>
+    <h2 id="retain-h" class="display" data-lines>Keep one person. <span class="grad-text">Cover everyone.</span></h2>
+    <div class="eq">
+      <div class="eq-block x" data-x="q250" tabindex="0"><small>Employees</small><strong data-count="250">250</strong></div>
+      <span class="eq-op">×</span>
+      <div class="eq-block x" data-x="q120" tabindex="0"><small>Per year</small><strong>$<span data-count="120">120</span></strong></div>
+      <span class="eq-op">=</span>
+      <div class="eq-block eq-block--total x" data-x="q30" tabindex="0"><small>MASii for a year</small><strong>$<span data-count="30000">30,000</span></strong></div>
+    </div>
+    <div class="scale" aria-hidden="true"><i class="beam"><span class="pan l">$30,000<small>MASii · 250 people</small></span><span class="pan r">≈ $30,000<small>Replacing one employee</small></span></i><i class="post"></i></div>
+    <div class="eq eq--two">
+      <div class="eq-block eq-block--wide x" data-x="qrep" tabindex="0"><small>Replacing one employee (illustrative recruiting and training cost)</small><strong>≈ $<span data-count="30000">30,000</span></strong></div>
+    </div>
+    <p class="retain-line" data-lines>If MASii helps one employee stay, avoiding that $30,000 expense covers all 250 employees for a year.</p>
+    <p class="fn fn--dark">An illustrative break-even example, not a measured MASii retention result.</p>
+  </div>
+</section>
+
+<!-- ═════════ 5 · ROLLOUT ═════════ -->
+<section class="card card--white card--rollout" id="rollout" aria-labelledby="roll-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><b class="num">05</b> Company signup to first week</p>
+      <h2 id="roll-h" class="display" data-lines>We help employees <span class="grad-text">sign up</span> and get started.</h2>
+      <p class="lede" data-lines>A guided launch, a first positive action and follow-up that helps people return.</p>
+    </div>
+    <ol class="deck" id="deck">
+      <li class="step"><div class="step-in"><i>01</i><h3>Set up the company</h3><p>HR confirms staff, approved causes and the launch date.</p></div></li>
+      <li class="step"><div class="step-in"><i>02</i><h3>Invite &amp; verify</h3><p>Open the company link or scan its QR code. Verify eligibility.</p></div></li>
+      <li class="step"><div class="step-in"><i>03</i><h3>Activate &amp; choose</h3><p>Claim employer-paid access. Pick a cause. No card needed.</p></div></li>
+      <li class="step"><div class="step-in"><i>04</i><h3>Make a first play</h3><p>Complete a daily action. See your GoodPrint progress.</p></div></li>
+      <li class="step"><div class="step-in"><i>05</i><h3>Help them return</h3><p>Get a next-day prompt, a first-week recap and help as needed.</p></div></li>
+    </ol>
+    <div class="deck-progress" aria-hidden="true"><i id="deckBar"></i></div>
+  </div>
+</section>
+
+<!-- ═════════ 6 · LAUNCH ═════════ -->
+<section class="card card--wash2" id="launch" aria-labelledby="launch-h">
+  <div class="wrap launch">
+    <div class="launch-copy">
+      <p class="eyebrow"><b class="num">06</b> Launch option</p>
+      <h2 id="launch-h" class="display" data-lines>Lunch + <span class="grad-text">guided signup.</span></h2>
+      <p class="lede" data-lines>Our team visits the office, brings lunch, demonstrates the app and helps employees sign up and make their first Play.</p>
+      <p class="drop"><b>Optional:</b> a same-day company Drop: a prize drawing with approved rules, a free-entry route and agreed funding.</p>
+    </div>
+    <div class="launch-visual">
+      <figure class="photo clip-rr"><img src="../../shared/assets/img/community-impact.webp" alt="Friends together outdoors at sunset" width="1600" height="1067" loading="lazy"></figure>
+      <figure class="heart3d" aria-hidden="true"><img src="../../shared/assets/img/done-heart.webp" alt="" width="900" height="746" loading="lazy"></figure>
+    </div>
+    <div class="types">
+      <p class="eyebrow">A launch for every type of team</p>
+      <ul>
+        <li><b>Remote</b><span>Live demo and signup help.</span></li>
+        <li><b>Shift workers</b><span>Pop-ups around breaks.</span></li>
+        <li><b>New hires</b><span>A first-week invitation.</span></li>
+      </ul>
+    </div>
+    <p class="fn">Agree staffing, access and launch funding in advance. Personal reflections stay private. Company Drop: approved eligibility and equal free entry; legal review before launch.</p>
+  </div>
+</section>
+
+<!-- ═════════ 7 · CLOSE ═════════ -->
+<section class="card card--close" id="close" aria-labelledby="close-h">
+  <div class="ii" aria-hidden="true"></div>
+  <div class="close-in">
+    <div class="close-art" aria-hidden="true">
+      <img class="c-coin c1" src="../../shared/assets/img/coin-gold.webp" alt="" width="900" height="834" loading="lazy">
+      <img class="c-coin c2" src="../../shared/assets/img/coin-lg.webp" alt="" width="900" height="900" loading="lazy">
+      <img class="c-m" src="../../shared/assets/img/tier-gradient.webp" alt="" width="900" height="454" loading="lazy">
+      <img class="c-star" src="../../shared/assets/img/mas-mark.webp" alt="" width="600" height="600" loading="lazy">
+    </div>
+    <h2 id="close-h" class="display close-h" data-lines>Good people <span class="grad-text">finish first.</span></h2>
+    <img class="close-lockup" src="../../shared/assets/logo/lockup-gradient-light.svg" alt="MASii" width="160" height="52" loading="lazy">
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <ol class="notes">
+      <li>*Proposed charitable contribution with Workplace access included. Final recipient, allocation and tax treatment require confirmation. Daily reward opportunities do not mean every employee receives a prize.</li>
+      <li>Complements core HR, clinical care, volunteer logistics and grantmaking.</li>
+      <li>Software fees are not equivalent to a funded benefit; scope, donations and other fees vary. *MASii is the proposed offer. Competitor pages and listed prices rechecked 16 September 2026.</li>
+      <li>†BLS, June 2026 U.S. private industry: $46.89/hour × 8. Compares labor value, not automatic cash savings; before-tax examples.</li>
+      <li>Engagement example, 100 employees ($12,000/yr): 10 × 2x daily, 10 × 1x daily, 10 × 3x weekly, 20 × 1x weekly, 50 × no engagement → 50 of 100 engage → ~13,520 engagements/yr → ~$0.89 per engagement. If all 50 engaged employees visited 1x daily: ~$0.66 per engagement.</li>
+      <li>Retention: an illustrative break-even example, not a measured MASii retention result. Replacing one employee ≈ $30,000 is an illustrative recruiting and training cost.</li>
+      <li>Agree staffing, access and launch funding in advance. Personal reflections stay private. Company Drop: approved eligibility and equal free entry; legal review before launch.</li>
+      <li>App screens are illustrative previews; cause names are examples.</li>
+    </ol>
+    <p class="contact"><a href="https://www.mymasii.com">www.mymasii.com</a> · <a href="mailto:info@mymasii.com">info@mymasii.com</a></p>
+  </div>
+</footer>
+
+<noscript><style>.stage canvas{display:none}.chapters{position:relative}.chapter{position:relative!important;opacity:1!important;visibility:visible!important;transform:none!important;min-height:80vh}.copy>*{opacity:1!important;transform:none!important}.journey-bar,.ph-slot{display:none}.card--deck{height:auto!important}</style></noscript>
+<script src="deck.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="stack.js"></script>
+</body>
+</html>

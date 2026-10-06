@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MASii Workplace · Aurora Flow</title>
+<meta name="description" content="MASii Workplace: company giving as an everyday benefit. Concept A, Aurora Flow.">
+<link rel="stylesheet" href="../../shared/brand.css">
+<link rel="stylesheet" href="aurora.css">
+<link rel="preload" as="image" href="../../shared/assets/img/tier-gradient.webp">
+</head>
+<body>
+
+<!-- Living light-field -->
+<div class="field" aria-hidden="true">
+  <div class="field__fallback"></div>
+  <canvas id="aurora"></canvas>
+  <div class="field__grain"></div>
+</div>
+
+<header class="topbar">
+  <a class="topbar__logo" data-magnetic="0.15" href="#top" aria-label="MASii Workplace, back to top"><img src="../../shared/assets/logo/lockup-gradient-light.svg" alt="MASii" width="112" height="32"><span class="topbar__tag">Workplace</span></a>
+</header>
+
+<a class="concept-link" data-magnetic="0.2" href="../../index.html"><span>←</span> All concepts <em>A · Aurora Flow</em></a>
+
+<main id="top">
+
+<!-- ============ 1. HERO / THE OFFER ============ -->
+<section class="hero" data-pal="0">
+  <div class="hero__copy">
+    <p class="eyebrow hero__eyebrow" data-fade>Workplace · The offer</p>
+    <h1 class="hero__title" data-reveal="load">
+      <span class="line">Company giving.</span>
+      <span class="line grad-text">An everyday benefit.</span>
+    </h1>
+    <p class="hero__sub" data-fade>Your company funds it. Your people choose causes, build positive habits and access daily reward opportunities.</p>
+  </div>
+
+  <div class="hero__stage">
+    <div class="hero__glows" aria-hidden="true">
+      <img class="glow glow--a" src="../../shared/assets/img/goodprint-glow.webp" alt="">
+      <img class="glow glow--b" src="../../shared/assets/img/done-glow.webp" alt="">
+      <img class="glow glow--c" src="../../shared/assets/img/entry-bar-bloom.webp" alt="">
+    </div>
+    <div class="hero__m-wrap">
+      <img class="hero__m" src="../../shared/assets/img/tier-gradient.webp" alt="" width="900" height="454">
+    </div>
+
+    <div class="price glass glass--blur tilt" data-tilt="5" data-fade>
+      <p class="price__label">One monthly contribution</p>
+      <div class="price__main">
+        <span class="price__num"><span class="cur">$</span><span data-count="10">10</span></span>
+        <span class="price__per">per covered employee,<br>per month*</span>
+      </div>
+      <dl class="price__row">
+        <div><dt class="calc" tabindex="0"><span>$</span><span data-count="120">120</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>$10 × 12 months</span></dt><dd>per year</dd></div>
+        <div><dt>$<span data-count="0">0</span></dt><dd>for employees</dd></div>
+        <div><dt>None</dt><dd>added fees</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <p class="hero__cue" aria-hidden="true"><span></span>Scroll</p>
+</section>
+
+<!-- ============ HOW IT WORKS (pinned, phone) ============ -->
+<section class="how" id="how" data-pal="1">
+  <div class="how__inner">
+    <div class="how__copy">
+      <p class="eyebrow">How it works</p>
+      <h2 class="h2 how__title" data-reveal>Three steps to an <span class="grad-text">everyday benefit.</span></h2>
+      <div class="how__count" aria-live="polite"><span class="how__cur-wrap"><span class="how__cur">1</span></span><span class="how__of">/ 3</span></div>
+      <div class="how__slides">
+        <article class="how__slide is-on" data-step="0"><h3 class="how__t">Choose a cause</h3><p>Employer-approved options. Employees choose among them.</p></article>
+        <article class="how__slide" data-step="1"><h3 class="how__t">Build good habits</h3><p>Daily actions and content. GoodPrint tracks personal progress.</p></article>
+        <article class="how__slide" data-step="2"><h3 class="how__t">Feel rewarded</h3><p>Milestones and recognition, plus daily reward opportunities.</p></article>
+      </div>
+      <div class="how__nav" role="tablist" aria-label="Steps">
+        <button type="button" class="how__seg is-on" data-go="0" data-magnetic role="tab" aria-selected="true"><span class="how__seg-bar"><i></i></span><span class="how__seg-l">01 Choose</span></button>
+        <button type="button" class="how__seg" data-go="1" data-magnetic role="tab" aria-selected="false"><span class="how__seg-bar"><i></i></span><span class="how__seg-l">02 Build</span></button>
+        <button type="button" class="how__seg" data-go="2" data-magnetic role="tab" aria-selected="false"><span class="how__seg-bar"><i></i></span><span class="how__seg-l">03 Rewarded</span></button>
+      </div>
+      <p class="fine how__fine">*Proposed charitable contribution with Workplace access included. Final recipient, allocation and tax treatment require confirmation. Daily reward opportunities do not mean every employee receives a prize.</p>
+    </div>
+
+    <div class="how__deck">
+      <img class="how__phone-glow" src="../../shared/assets/img/bottom-glow.webp" alt="" aria-hidden="true" loading="lazy">
+      <div class="deck">
+      <div class="phone deck__card" data-card="0" role="img" aria-label="Illustrative app screen: choosing an employer-approved cause">
+        <div class="phone__notch"></div>
+        <div class="phone__status"><span>9:41</span><span class="phone__icons"><i></i><i></i><i></i></span></div>
+        <div class="scr scr--cause" data-screen="0">
+          <p class="scr__kicker">Step 1 of 3</p>
+          <h3 class="scr__h">Choose your cause</h3>
+          <p class="scr__sub">Approved by your company. Switch any month.</p>
+          <ul class="causes">
+            <li><span class="causes__cat">Hunger</span><b>Local food banks</b><i class="causes__radio"></i></li>
+            <li class="is-picked"><span class="causes__cat">Education</span><b>Youth learning programs</b><i class="causes__radio"></i></li>
+            <li><span class="causes__cat">Environment</span><b>Parks &amp; green spaces</b><i class="causes__radio"></i></li>
+            <li><span class="causes__cat">Animals</span><b>Rescue shelters</b><i class="causes__radio"></i></li>
+          </ul>
+          <span class="pill">Confirm cause</span>
+          <p class="scr__note">Example causes, for illustration</p>
+        </div>
+        <div class="phone__nav"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="phone deck__card" data-card="1" role="img" aria-label="Illustrative app screen: GoodPrint progress and today's Plays">
+        <div class="phone__notch"></div>
+        <div class="phone__status"><span>9:41</span><span class="phone__icons"><i></i><i></i><i></i></span></div>
+        <div class="scr scr--gp" data-screen="1">
+          <div class="gp__head">
+            <span class="gp__hi">Good morning</span>
+            <span class="mas-pill"><img src="../../shared/assets/img/coin-gold.webp" alt="" loading="lazy">1,240</span>
+          </div>
+          <div class="gp__card">
+            <svg class="gp__ring" viewBox="0 0 120 120" aria-hidden="true">
+              <defs><linearGradient id="ringG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60E2D8"/><stop offset=".5" stop-color="#EC7CC1"/><stop offset="1" stop-color="#6D5CF1"/></linearGradient></defs>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+              <circle class="gp__arc" cx="60" cy="60" r="50" fill="none" stroke="url(#ringG)" stroke-width="9" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 60 60)"/>
+            </svg>
+            <div class="gp__ring-txt"><small>GoodPrint</small><b>Level 4</b></div>
+            <div class="gp__stats">
+              <div><img src="../../shared/assets/img/stat-day-run.webp" alt="" loading="lazy"><b>7</b><small>Day run</small></div>
+              <div><img src="../../shared/assets/img/stat-donations.webp" alt="" loading="lazy"><b>12</b><small>Donations</small></div>
+              <div><img src="../../shared/assets/img/stat-moves.webp" alt="" loading="lazy"><b>38</b><small>Moves</small></div>
+            </div>
+          </div>
+          <p class="gp__label">Today's Plays <span>2 of 3</span></p>
+          <ul class="plays">
+            <li class="is-done"><i></i>Watch today's Good Feed story</li>
+            <li class="is-done"><i></i>Thank a teammate</li>
+            <li><i></i>Two-minute reflection</li>
+          </ul>
+          <div class="gp__feed"><img src="../../shared/assets/img/community-impact.webp" alt="" loading="lazy"><div><small>Daily Goodness</small><b>A one-minute story from your cause</b></div></div>
+        </div>
+        <div class="phone__nav"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="phone deck__card" data-card="2" role="img" aria-label="Illustrative app screen: a 7-day-run milestone reward">
+        <div class="phone__notch"></div>
+        <div class="phone__status"><span>9:41</span><span class="phone__icons"><i></i><i></i><i></i></span></div>
+        <div class="scr scr--win" data-screen="2">
+          <img class="win__glow" src="../../shared/assets/img/done-glow.webp" alt="" loading="lazy">
+          <img class="win__orbit" src="../../shared/assets/img/done-orbit.webp" alt="" loading="lazy">
+          <div class="win__coinwrap" data-prox><img class="win__coin" src="../../shared/assets/img/coin-gold.webp" alt="" loading="lazy"></div>
+          <img class="win__confetti" src="../../shared/assets/img/done-confetti.webp" alt="" loading="lazy">
+          <div class="confetti" aria-hidden="true"></div>
+          <p class="win__kicker">Milestone</p>
+          <h3 class="win__h">7-day run</h3>
+          <p class="win__mas">+50 MAS</p>
+          <p class="win__line">Your GoodPrint is showing.</p>
+          <span class="pill">Collect</span>
+        </div>
+        <div class="phone__nav"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. EIGHT TEAMS (horizontal) ============ -->
+<section class="teams" id="teams" data-pal="2">
+  <div class="teams__head wrap">
+    <div>
+      <p class="eyebrow">Who it helps</p>
+      <h2 class="h2" data-reveal>One employee benefit. <span class="grad-text">Value across eight teams.</span></h2>
+      <p class="lede">Different departments. Different needs. One giving-and-growth experience.</p>
+    </div>
+    <div class="teams__ctrl">
+      <button type="button" class="arrow" data-dir="-1" data-magnetic aria-label="Previous teams">←</button>
+      <button type="button" class="arrow" data-dir="1" data-magnetic aria-label="Next teams">→</button>
+    </div>
+  </div>
+  <div class="teams__viewport" tabindex="0" aria-label="Eight teams. Drag, swipe or use the arrow buttons.">
+    <div class="teams__track">
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-handshake.webp" alt="" loading="lazy"><span class="tcard__i">01 / 08</span><h3>People / HR</h3><p class="tcard__p"><small>The problem</small>Low team connection.</p><p class="tcard__a"><small>MASii answer</small>Make company values part of everyday life.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-gift-heart.webp" alt="" loading="lazy"><span class="tcard__i">02 / 08</span><h3>Benefits / Rewards</h3><p class="tcard__p"><small>The problem</small>Benefits get forgotten.</p><p class="tcard__a"><small>MASii answer</small>Give employees a benefit they can use all year.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-target.webp" alt="" loading="lazy"><span class="tcard__i">03 / 08</span><h3>CSR / Social Impact</h3><p class="tcard__p"><small>The problem</small>Low participation.</p><p class="tcard__a"><small>MASii answer</small>Give staff a say in causes and show funded impact.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-stars.webp" alt="" loading="lazy"><span class="tcard__i">04 / 08</span><h3>Recognition / Culture</h3><p class="tcard__p"><small>The problem</small>Kindness goes unseen.</p><p class="tcard__a"><small>MASii answer</small>Recognize generosity, consistency and milestones.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-heart-message.webp" alt="" loading="lazy"><span class="tcard__i">05 / 08</span><h3>Wellbeing</h3><p class="tcard__p"><small>The problem</small>A need for connection.</p><p class="tcard__a"><small>MASii answer</small>Offer uplifting content, reflection and small actions.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-handshake.webp" alt="" loading="lazy"><span class="tcard__i">06 / 08</span><h3>Volunteering</h3><p class="tcard__p"><small>The problem</small>Momentum fades.</p><p class="tcard__a"><small>MASii answer</small>Keep people involved between volunteer days.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-stars.webp" alt="" loading="lazy"><span class="tcard__i">07 / 08</span><h3>Employer Brand</h3><p class="tcard__p"><small>The problem</small>Claims need proof.</p><p class="tcard__a"><small>MASii answer</small>Use approved employee and impact stories in recruiting.</p></article>
+      <article class="tcard glass tilt" data-tilt><img data-prox draggable="false" src="../../shared/assets/img/mission-target.webp" alt="" loading="lazy"><span class="tcard__i">08 / 08</span><h3>Employee Experience</h3><p class="tcard__p"><small>The problem</small>Too many separate apps.</p><p class="tcard__a"><small>MASii answer</small>Bring giving, growth and rewards into one experience.</p></article>
+    </div>
+  </div>
+  <div class="teams__foot wrap">
+    <div class="teams__bar" aria-hidden="true"><span></span></div>
+    <p class="teams__hint">Drag, swipe or use the arrows</p>
+  </div>
+  <div class="teams__outro wrap">
+    <p class="teams__line">HR or Benefits <em>sponsors.</em> CSR <em>guides the causes.</em> MASii helps employees <span class="grad-text">get started.</span></p>
+    <p class="fine">Complements core HR, clinical care, volunteer logistics and grantmaking.</p>
+  </div>
+</section>
+
+<!-- ============ 3. COMPARISON ============ -->
+<section class="compare wrap" id="compare" data-pal="3">
+  <p class="eyebrow">How it compares</p>
+  <h2 class="h2" data-reveal>How MASii fits <span class="grad-text">alongside</span> existing programs.</h2>
+  <p class="lede">One package: charitable giving, personal growth and daily reward opportunities.</p>
+
+  <div class="ctable glass" role="table" aria-label="Platform comparison">
+    <div class="crow crow--head" role="row"><span role="columnheader">Platform</span><span role="columnheader">What it provides</span><span role="columnheader">Public pricing</span></div>
+    <div class="crow" role="row"><span role="cell" class="crow__name">Benevity / YourCause</span><span role="cell">Giving, matching, volunteering and engagement</span><span role="cell" class="crow__price">Contact sales</span></div>
+    <div class="crow" role="row"><span role="cell" class="crow__name">Bonterra Deed</span><span role="cell">Giving, volunteering, small actions and gamification</span><span role="cell" class="crow__price">Contact sales</span></div>
+    <div class="crow" role="row"><span role="cell" class="crow__name">Millie</span><span role="cell">Giving, volunteering, kindness and wellness campaigns</span><span role="cell" class="crow__price">Annual custom quote</span></div>
+    <div class="crow" role="row"><span role="cell" class="crow__name">Groundswell</span><span role="cell">Giving and matching; volunteering by plan</span><span role="cell" class="crow__price">From $8,500/year</span></div>
+    <div class="crow" role="row"><span role="cell" class="crow__name">Reward Gateway / Edenred</span><span role="cell">Recognition, rewards, wellbeing and discounts</span><span role="cell" class="crow__price">Contact sales</span></div>
+    <div class="crow crow--masii" role="row"><span role="cell" class="crow__name"><img src="../../shared/assets/logo/mark-gradient.svg" alt="" width="26" height="14">MASii Workplace*</span><span role="cell">Giving, daily growth, progress and personal reward opportunities</span><span role="cell" class="crow__price"><b>$10 / employee / month</b><small>No added program fees</small></span></div>
+  </div>
+
+  <div class="why">
+    <div class="why__c glass tilt" data-tilt data-fade><p class="eyebrow">One simple offer</p><p>Giving and app access in one monthly contribution.</p></div>
+    <div class="why__c glass tilt" data-tilt data-fade><p class="eyebrow">A reason to return</p><p>Positive actions, content and personal progress.</p></div>
+    <div class="why__c glass tilt" data-tilt data-fade><p class="eyebrow">Value beyond prizes</p><p>A daily experience that still matters when you do not win.</p></div>
+  </div>
+  <p class="fine">Software fees are not equivalent to a funded benefit; scope, donations and other fees vary. *MASii is the proposed offer. Competitor pages and listed prices rechecked 16 September 2026.</p>
+</section>
+
+<!-- ============ 4. COST & RETURN ============ -->
+<section class="cost wrap" id="cost" data-pal="4">
+  <p class="eyebrow">Cost and return</p>
+  <h2 class="h2" data-reveal>What <span class="grad-text">$120 a year</span> means for an employer.</h2>
+  <p class="lede">A year-round benefit, with costs the employer can measure.</p>
+
+  <div class="cost__grid">
+    <!-- vs volunteer day -->
+    <article class="cbox cbox--bars glass tilt" data-tilt="3">
+      <p class="cbox__k">A year of MASii vs one volunteer day</p>
+      <div class="bars">
+        <div class="bar bar--m"><div class="bar__lab"><span>A year of MASii</span><b class="calc" tabindex="0">$<span data-count="120">120</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>$10 per employee × 12 months</span></b></div><div class="bar__track"><span class="bar__fill" style="--to:.32"></span></div></div>
+        <div class="bar bar--v"><div class="bar__lab"><span>One volunteer day <small>(wages + benefits)</small></span><b class="calc" tabindex="0">$<span data-count="375.12" data-dec="2">375.12</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>$46.89 per hour × 8 hours<br>(BLS, June 2026, U.S. private industry wages + benefits)</span></b></div><div class="bar__track"><span class="bar__fill" style="--to:1"></span></div></div>
+      </div>
+      <div class="cbox__big"><span class="big calc" tabindex="0"><span data-count="68">68</span>%<span class="calc__tip" role="tooltip"><small>How it’s calculated</small>1 − ($120 ÷ $375.12) ≈ 68%</span></span><p>below the cost equivalent of one 8-hour workday.*</p></div>
+      <p class="cbox__voice">Keep the volunteer day. <span class="grad-text">Add year-round use.</span></p>
+      <p class="fine">*BLS, June 2026 U.S. private industry: $46.89/hour × 8. Compares labor value, not automatic cash savings; before-tax examples.</p>
+    </article>
+
+    <!-- balance scale -->
+    <article class="cbox cbox--scale glass tilt" data-tilt="3">
+      <p class="cbox__k">The retention math</p>
+      <div class="scale" aria-hidden="true">
+        <div class="scale__beam">
+          <div class="scale__pan scale__pan--l"><span class="scale__chain"></span><div class="scale__dish"><b>$30,000</b><small>250 × $120 / yr</small></div></div>
+          <div class="scale__pan scale__pan--r"><span class="scale__chain"></span><div class="scale__dish"><b>$30,000</b><small>Replacing one employee</small></div></div>
+        </div>
+        <div class="scale__post"><span class="scale__eq">=</span></div>
+      </div>
+      <div class="scale__nums">
+        <div><span class="big calc" tabindex="0">$<span data-count="30000">30,000</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>250 employees × $120 per year</span></span><p>250 employees × $120 a year</p></div>
+        <span class="scale__mid grad-text">=</span>
+        <div><span class="big calc" tabindex="0">$<span data-count="30000">30,000</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>Illustrative recruiting and training cost to replace one employee. Not a measured MASii result.</span></span><p>Replacing one employee ≈ (illustrative recruiting and training cost)</p></div>
+      </div>
+      <p class="cbox__voice">If MASii helps one employee stay, avoiding that $30,000 expense <span class="grad-text">covers all 250 employees</span> for a year.</p>
+      <p class="fine">An illustrative break-even example, not a measured MASii retention result.</p>
+    </article>
+
+    <!-- engagement example -->
+    <article class="cbox cbox--eng glass tilt" data-tilt="2">
+      <p class="cbox__k">Engagement example · 100 employees · $12,000 / yr</p>
+      <p class="cbox__hint">Hover or tap a group to see it in the grid. Hover any figure to see the math.</p>
+      <div class="eng">
+        <div class="dots" aria-hidden="true"></div>
+        <ul class="eng__legend">
+          <li><button type="button" data-g="0"><i style="--c:#4E4FE8"></i>10 × 2x daily</button></li>
+          <li><button type="button" data-g="1"><i style="--c:#8273EB"></i>10 × 1x daily</button></li>
+          <li><button type="button" data-g="2"><i style="--c:#E2A7D4"></i>10 × 3x weekly</button></li>
+          <li><button type="button" data-g="3"><i style="--c:#6DBCEC"></i>20 × 1x weekly</button></li>
+          <li><button type="button" data-g="4"><i class="none"></i>50 × no engagement</button></li>
+        </ul>
+      </div>
+      <div class="eng__stats">
+        <div><span class="mid calc" tabindex="0"><span data-count="50">50</span> of 100<span class="calc__tip" role="tooltip"><small>How it’s calculated</small>10 + 10 + 10 + 20 people engage at some frequency; 50 do not engage</span></span><small>engage</small></div>
+        <div><span class="mid calc" tabindex="0">~<span data-count="13520">13,520</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>Visits per person per year: 2x daily = 730 · 1x daily = 365 · 3x weekly = 156 · 1x weekly = 52, summed over the 50 engaged people (deck figure)</span></span><small>engagements / yr</small></div>
+        <div><span class="mid calc" tabindex="0">~$<span data-count="0.89" data-dec="2">0.89</span><span class="calc__tip" role="tooltip"><small>How it’s calculated</small>$12,000 per year ÷ ~13,520 engagements</span></span><small>per engagement</small></div>
+      </div>
+      <p class="cbox__voice small">If all 50 engaged employees visited 1x daily: <b class="calc" tabindex="0">~$0.66 per engagement.<span class="calc__tip" role="tooltip"><small>How it’s calculated</small>$12,000 ÷ (50 people × 365 days = 18,250 visits)</span></b></p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ 5. ROLLOUT ============ -->
+<section class="roll wrap" id="rollout" data-pal="5">
+  <p class="eyebrow">Company signup to first week</p>
+  <h2 class="h2" data-reveal>We help employees sign up and <span class="grad-text">get started.</span></h2>
+  <p class="lede">A guided launch, a first positive action and follow-up that helps people return.</p>
+
+  <div class="roll__grid">
+    <div class="roll__steps">
+      <svg class="roll__line" aria-hidden="true" preserveAspectRatio="none">
+        <defs><linearGradient id="rollG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6DBCEC"/><stop offset=".3" stop-color="#B5DABB"/><stop offset=".55" stop-color="#E2A7D4"/><stop offset=".8" stop-color="#8273EB"/><stop offset="1" stop-color="#4E4FE8"/></linearGradient></defs>
+        <path class="roll__track" d=""/>
+        <path class="roll__draw" d=""/>
+      </svg>
+      <ol>
+        <li class="rstep"><span class="rstep__dot"></span><span class="rstep__n">01</span><h3>Set up the company</h3><p>HR confirms staff, approved causes and the launch date.</p></li>
+        <li class="rstep"><span class="rstep__dot"></span><span class="rstep__n">02</span><h3>Invite &amp; verify</h3><p>Open the company link or scan its QR code. Verify eligibility.</p></li>
+        <li class="rstep"><span class="rstep__dot"></span><span class="rstep__n">03</span><h3>Activate &amp; choose</h3><p>Claim employer-paid access. Pick a cause. No card needed.</p></li>
+        <li class="rstep"><span class="rstep__dot"></span><span class="rstep__n">04</span><h3>Make a first play</h3><p>Complete a daily action. See your GoodPrint progress.</p></li>
+        <li class="rstep"><span class="rstep__dot"></span><span class="rstep__n">05</span><h3>Help them return</h3><p>Get a next-day prompt, a first-week recap and help as needed.</p></li>
+      </ol>
+    </div>
+
+    <aside class="roll__side">
+      <div class="launch tilt" data-tilt="4">
+        <img class="launch__bg" src="../../shared/assets/img/aurora-dark-card.webp" alt="" loading="lazy">
+        <p class="eyebrow">Launch option</p>
+        <h3>Lunch + guided signup</h3>
+        <p>Our team visits the office, brings lunch, demonstrates the app and helps employees sign up and make their first Play.</p>
+        <p class="launch__opt"><b>Optional:</b> a same-day company Drop — a prize drawing with approved rules, a free-entry route and agreed funding.</p>
+      </div>
+      <p class="roll__sub">A launch for every type of team</p>
+      <div class="kinds">
+        <div class="kind glass tilt" data-tilt><b>Remote</b><span>Live demo and signup help.</span></div>
+        <div class="kind glass tilt" data-tilt><b>Shift workers</b><span>Pop-ups around breaks.</span></div>
+        <div class="kind glass tilt" data-tilt><b>New hires</b><span>A first-week invitation.</span></div>
+      </div>
+      <p class="fine">Agree staffing, access and launch funding in advance. Personal reflections stay private. Company Drop: approved eligibility and equal free entry; legal review before launch.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ CLOSE ============ -->
+<section class="close" data-pal="6">
+  <div class="close__mwrap" data-prox data-prox-r="520"><img class="close__m" src="../../shared/assets/img/tier-gradient.webp" alt="" loading="lazy" aria-hidden="true"></div>
+  <h2 class="close__h" data-reveal>Good people <span class="grad-text">finish first.</span></h2>
+  <p class="close__sub">MASii Workplace. Company giving, as an everyday benefit.</p>
+</section>
+
+</main>
+
+<footer class="foot"><div class="wrap">
+  <img src="../../shared/assets/logo/lockup-gradient-light.svg" alt="MASii" width="120" height="34" loading="lazy">
+  <ol class="foot__notes">
+    <li>*Proposed charitable contribution with Workplace access included. Final recipient, allocation and tax treatment require confirmation. Daily reward opportunities do not mean every employee receives a prize.</li>
+    <li>Complements core HR, clinical care, volunteer logistics and grantmaking.</li>
+    <li>Software fees are not equivalent to a funded benefit; scope, donations and other fees vary. *MASii is the proposed offer. Competitor pages and listed prices rechecked 16 September 2026.</li>
+    <li>*BLS, June 2026 U.S. private industry: $46.89/hour × 8. Compares labor value, not automatic cash savings; before-tax examples.</li>
+    <li>Engagement example: 100 employees, $12,000/yr. Annual visits per person: 2x daily = 730, 1x daily = 365, 3x weekly = 156, 1x weekly = 52.</li>
+    <li>Retention: an illustrative break-even example, not a measured MASii retention result. Replacement cost is an illustrative recruiting and training cost.</li>
+    <li>Agree staffing, access and launch funding in advance. Personal reflections stay private. Company Drop: approved eligibility and equal free entry; legal review before launch.</li>
+    <li>App screens are illustrative. Causes, names and figures shown in the phone are examples only.</li>
+  </ol>
+  <p class="foot__contact"><a href="https://www.mymasii.com">www.mymasii.com</a> · <a href="mailto:info@mymasii.com">info@mymasii.com</a></p>
+</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="aurora.js"></script>
+</body>
+</html>
