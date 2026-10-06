@@ -7,7 +7,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(hover: hover) and (pointer: fine)');
-const hasGsap = !!window.gsap;
+const hasGsap = !!(window.gsap && window.ScrollTrigger);
 const root = document.documentElement;
 root.classList.add('js');
 const split = window.splitLines;
@@ -233,6 +233,7 @@ function interactions() {
 
 /* ───────── 7. Motion ───────── */
 if (!hasGsap || reduce) {
+  root.classList.add('static-reveals');
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
     $$('[data-lines]').forEach(el => split ? split(el) : el.classList.add('split'));
     placeInd(); layoutStatic();
@@ -247,26 +248,34 @@ if (!hasGsap || reduce) {
 }
 
 gsap.registerPlugin(ScrollTrigger);
-ScrollTrigger.config({ ignoreMobileResize: true });
+ScrollTrigger.config({ ignoreMobileResize: true, autoRefreshEvents: 'none' });
+let refreshTimer, lastScrollAt = 0;
+addEventListener('scroll', () => { lastScrollAt = performance.now(); }, { passive: true });
+function safeRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => {
+    if (performance.now() - lastScrollAt < 250 || ScrollTrigger.isScrolling() || (lenis && lenis.isScrolling)) return safeRefresh();
+    ScrollTrigger.refresh();
+  }, 350);
+}
+const yieldWork = () => new Promise(resolve => {
+  if ('requestIdleCallback' in window) requestIdleCallback(resolve, { timeout: 120 });
+  else setTimeout(resolve, 16);
+});
 const cards = $$('.stack > .card');
 cards.forEach((c, i) => { c.style.zIndex = i + 1; });   // explicit, increasing z-order: no bleed-through
 const marks = cards.map(c => { const m = document.createElement('div'); m.className = 'flow-mark'; c.before(m); return m; });
 const absTop = el => el.getBoundingClientRect().top + window.scrollY;
 const cardTop = i => absTop(marks[i]) + marks[i].offsetHeight;
-function flowTop(el) {
-  const card = el.closest('.card');
-  if (!card) return absTop(el);
-  let y = 0, n = el;
-  while (n && n !== card) { y += n.offsetTop; n = n.offsetParent; }
-  return cardTop(cards.indexOf(card)) + y;
-}
+
 
 let lenis = null;
 if (window.Lenis) {
   // Wheel events the deck consumed (chapter glides) carry e.__deck and are never smoothed by Lenis.
-  lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true, virtualScroll: d => !(d.event && d.event.__deck) });
+  lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: !matchMedia('(any-pointer: coarse)').matches, syncTouch: false, virtualScroll: d => !(d.event && d.event.__deck) });
+  window.__lenis = lenis;
   lenis.on('scroll', ScrollTrigger.update);
-  ScrollTrigger.addEventListener('refresh', () => { lenis.resize(); lenis.scrollTo(window.scrollY, { immediate: true, force: true }); });
+  ScrollTrigger.addEventListener('refresh', () => { lenis.resize(); if (!lenis.isScrolling && Math.abs(lenis.animatedScroll - window.scrollY) > 1) lenis.scrollTo(window.scrollY, { immediate: true, force: true }); });
   let st, scrolling = false;
   lenis.on('scroll', e => {
     pill(e.animatedScroll);
@@ -285,18 +294,34 @@ function layoutCards() {}
 const EASE = 'expo.out';
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(init);
 
-function init() {
+async function init() {
   const lineEls = $$('[data-lines]');
-  lineEls.forEach(el => split(el));
+  for (const el of lineEls) { await yieldWork(); split(el); }
   placeInd();
   layoutCards();
 
   /* line-mask reveals */
-  const onEnter = (el, fn, at = .86) => ScrollTrigger.create({ start: () => flowTop(el) - innerHeight * at, end: 'max', once: true, invalidateOnRefresh: true, onEnter: fn });
-  lineEls.forEach(el => {
+  // One-shot reveals share observers instead of constructing dozens of ScrollTriggers.
+  const observers = new Map();
+  const onEnter = (el, fn, at = .86) => {
+    if (!observers.has(at)) {
+      const callbacks = new Map();
+      const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        callbacks.get(entry.target)?.();
+        callbacks.delete(entry.target);
+      }), { rootMargin: `0px 0px -${(1 - at) * innerHeight}px 0px` });
+      observers.set(at, { observer, callbacks });
+    }
+    const { observer, callbacks } = observers.get(at);
+    callbacks.set(el, fn); observer.observe(el);
+  };
+  for (const el of lineEls) {
+    await yieldWork();
     gsap.set($$('.ln-i', el), { yPercent: 110 });
-    onEnter(el, () => { el._shown = true; gsap.to($$('.ln-i', el), { yPercent: 0, duration: 1.15, ease: EASE, stagger: .085 }); });
-  });
+    onEnter(el, () => { el._shown = true; el.classList.add('revealed'); gsap.to($$('.ln-i', el), { yPercent: 0, duration: 1.15, ease: EASE, stagger: .085 }); });
+  }
 
   /* stagger groups: layers that drop into place */
   [
@@ -315,6 +340,7 @@ function init() {
     onEnter(parent, () => gsap.to(kids, { y: 0, rotate: 0, opacity: 1, scale: 1, duration: 1.1, ease: EASE, stagger: .07, clearProps: 'opacity,scale,rotate' }), .88);
   }));
 
+  await yieldWork();
   /* A's count-ups (everything outside the deck; the deck counts its own price card) */
   $$('[data-count]').filter(el => !el.closest('.chapter')).forEach(el => {
     const to = parseFloat(el.dataset.count), dec = +el.dataset.dec || 0, o = { v: 0 };
@@ -327,6 +353,7 @@ function init() {
   onEnter(dots, () => dots.classList.remove('pre'), .82);
   onEnter($('.scale'), () => $('.scale').classList.add('in'), .8);
 
+  await yieldWork();
   /* photo clip reveal */
   $$('.clip-rr').forEach(el => {
     const img = el.querySelector('img');
@@ -348,6 +375,7 @@ function init() {
   gsap.set($$('img', art), { opacity: 0, y: 40 });
   onEnter(art, () => gsap.to($$('img', art), { opacity: 1, y: 0, duration: 1.3, ease: EASE, stagger: { each: .1, from: 'end' }, clearProps: 'transform' }), .85);
 
+  await yieldWork();
   interactions();
 
   /* responsive rebuild */
@@ -355,13 +383,12 @@ function init() {
   ScrollTrigger.addEventListener('refreshInit', layoutCards);
   addEventListener('resize', () => {
     placeInd();
-    if (innerWidth === lastW) return;
+    if (innerWidth === lastW) { if (fine.matches) safeRefresh(); return; }
     lastW = innerWidth;
     lineEls.forEach(el => { const lines = split(el); gsap.set(lines, { yPercent: el._shown ? 0 : 110 }); });
+    safeRefresh();
   });
-  ScrollTrigger.refresh();
-  let rt;
-  const safeRefresh = () => { clearTimeout(rt); rt = setTimeout(() => (lenis && lenis.isScrolling) ? safeRefresh() : ScrollTrigger.refresh(), 350); };
+  safeRefresh();
   if (document.readyState !== 'complete') addEventListener('load', safeRefresh, { once: true });
 }
 

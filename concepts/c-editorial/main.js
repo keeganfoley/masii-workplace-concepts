@@ -1,6 +1,8 @@
 /* Concept C — Clear Benefit. Vanilla JS: reveals, count-ups, nav state, tabs, calculator. */
 (() => {
   const doc = document.documentElement;
+  if (doc.dataset.editorialReady) return;
+  doc.dataset.editorialReady = 'true';
   doc.classList.add('js');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = (s, r = document) => r.querySelector(s);
@@ -36,9 +38,10 @@
     entries.forEach(en => {
       if (!en.isIntersecting) return;
       const el = en.target;
+      if (el.classList.contains('is-in')) { io.unobserve(el); return; }
       el.classList.add('is-in');
       // hand the element back to the hover layer once its entrance is done
-      setTimeout(() => { el.removeAttribute('data-reveal'); el.style.removeProperty('--d'); }, 1400);
+      setTimeout(() => { el.classList.add('reveal-done'); el.style.removeProperty('--d'); }, 1400);
       $$('[data-count]', el).forEach(countUp);
       if (el.matches('[data-count]')) countUp(el);
       io.unobserve(el);

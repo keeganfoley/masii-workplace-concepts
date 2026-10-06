@@ -28,7 +28,8 @@ const SPR_B={heart:'done-heart',gpGlow:'goodprint-glow',confetti:'done-confetti'
 const img={};let assetsReady=false,sceneDirty=true;
 const mk=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c};
 function decode(name){return fetch(IMG+name+'.webp').then(r=>{if(!r.ok)throw 0;return r.blob()}).then(b=>'createImageBitmap'in window?createImageBitmap(b):new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(b)})).catch(()=>null)}
-const loadGroup=g=>Promise.all(Object.entries(g).map(([k,n])=>decode(n).then(b=>{if(b)img[k]=b}))).then(()=>{prep(Object.keys(g));sceneDirty=true});
+const yieldWork=()=>new Promise(resolve=>{if('requestIdleCallback'in window)requestIdleCallback(resolve,{timeout:120});else setTimeout(resolve,16)});
+const loadGroup=g=>Promise.all(Object.entries(g).map(([k,n])=>decode(n).then(b=>{if(b)img[k]=b}))).then(async()=>{await prep(Object.keys(g));sceneDirty=true});
 const BUCKETS=[96,192,384];
 function blurCopy(src,bw){const bh=bw*src.height/src.width,pad=Math.round(bw*.14),W=bw+pad*2,H=bh+pad*2;
   {const out=mk(W,H),x=out.getContext('2d');if('filter'in x){x.filter=`blur(${Math.max(1,bw*.022).toFixed(1)}px)`;x.drawImage(src,pad,pad,bw,bh);x.filter='none';out.w0=bw;return out}}
@@ -45,8 +46,8 @@ function sliceM(){const s=img.m;if(!s)return;
     const L=Math.floor(Math.min(ta,ba))-2,R=Math.ceil(Math.max(tb,bb))+2,cw=R-L,c=mk(cw,s.height),g=c.getContext('2d');
     g.beginPath();g.moveTo(i?ta-L:0,0);g.lineTo(i<3?tb-L:cw,0);g.lineTo(i<3?tb-L:cw,stepY);g.lineTo(i<3?bb-L:cw,stepY);g.lineTo(i<3?bb-L:cw,s.height);g.lineTo(i?ba-L:0,s.height);g.lineTo(i?ba-L:0,stepY);g.lineTo(i?ta-L:0,stepY);g.closePath();g.clip();g.drawImage(s,-L,0);
     img.mSeg.push({cv:c,ox:L+cw/2-s.width/2,fw:cw/s.width})}}
-function prep(keys){for(const k of keys){const s=img[k];if(!s)continue;
-  if(['gold','silver','spark','m'].includes(k))img[k+'Blur']=BUCKETS.map(bw=>blurCopy(s,bw));
+async function prep(keys){for(const k of keys){await yieldWork();const s=img[k];if(!s)continue;
+  if(['gold','silver','spark','m'].includes(k)){const copies=[];for(const bw of BUCKETS){await yieldWork();copies.push(blurCopy(s,bw))}img[k+'Blur']=copies;}
   if(k==='m')sliceM();
   if(['gift','hand','msg','stars','target'].includes(k)){const c=mk(s.width,s.height),x=c.getContext('2d');x.drawImage(s,0,0);x.globalCompositeOperation='destination-in';const r=x.createRadialGradient(c.width/2,c.height/2,0,c.width/2,c.height/2,c.width/2);r.addColorStop(0,'#000');r.addColorStop(.55,'#000');r.addColorStop(.98,'rgba(0,0,0,0)');x.fillStyle=r;x.fillRect(0,0,c.width,c.height);img[k]=c}
   if(['glow','gpGlow','bloom'].includes(k)){const c=mk(s.width/2,s.height/2),x=c.getContext('2d');x.drawImage(s,0,0,c.width,c.height);x.globalCompositeOperation='destination-in';x.setTransform(c.width/2,0,0,c.height/2,c.width/2,c.height/2);const r=x.createRadialGradient(0,0,0,0,0,1);r.addColorStop(0,'#000');r.addColorStop(.45,'#000');r.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r;x.fillRect(-1,-1,2,2);img[k]=c}}
@@ -203,7 +204,7 @@ const slotGeo=()=>({cx:slot.offsetLeft+slot.offsetWidth/2,cy:slot.offsetTop+slot
 
 // ---- Deck state ------------------------------------------------------------------------------------
 const film=makeRenderer(canvas,FX,slotGeo);
-let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight,lastWheel=0,lastMag=0,lastStep=0,strokeSum=0,strokeArmed=false,lastDirection=0,touchY=null,touchConsumed=false;
+let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight,lastWheel=0,strokeSum=0,strokeArmed=false,touchY=null,touchConsumed=false;
 let quality=1,glideDeltas=[],wasSettled=true;
 const metrics={draws:0,drawMs:[],ticks:0};
 const settled=()=>Math.abs(STOPS[stop]-cur)<.25&&Math.abs(vel)<.8;
@@ -297,8 +298,8 @@ function tick(t){raf=0;if(document.hidden||staticMode)return;const dt=Math.min(.
 function wake(){if(!raf&&!staticMode&&!document.hidden)raf=requestAnimationFrame(tick)}
 function adapt(){if(glideDeltas.length<20){glideDeltas=[];return}const a=[...glideDeltas].sort((x,y)=>x-y),p80=a[Math.floor(a.length*.8)];glideDeltas=[];if(p80>21&&quality>.72){quality=Math.max(.7,quality-.15);lastW=0;measure()}}
 let lastW=0,lastH=0;
-function measure(){const w=stage.offsetWidth,h=stage.offsetHeight;viewH=h||innerHeight;if(lastW&&w===lastW&&Math.abs(h-lastH)<120&&PHONE)return;
-  lastW=w;lastH=h;scrollGrace=performance.now()+800;const dpr=Math.min(devicePixelRatio||1,2)*quality;film.resize(Math.round(w*dpr),Math.round(h*dpr));
+function measure(){const w=stage.offsetWidth,h=stage.offsetHeight;viewH=h||innerHeight;if(lastW&&w===lastW&&(h===lastH||(Math.abs(h-lastH)<120&&PHONE)))return;
+  lastW=w;lastH=h;const dpr=Math.min(devicePixelRatio||1,PHONE?1.25:2)*quality;film.resize(Math.round(w*dpr),Math.round(h*dpr));
   const s=canvas.width/Math.max(1,w);phRect=[slot.offsetLeft*s,slot.offsetTop*s,(slot.offsetLeft+slot.offsetWidth)*s,(slot.offsetTop+slot.offsetHeight)*s];sceneDirty=true;wake()}
 
 // ---- Gestures --------------------------------------------------------------------------------------
@@ -308,17 +309,33 @@ function blockedInput(e){return staticMode||!!(e.target.closest&&e.target.closes
 // Registered before Lenis: events the deck consumes carry e.__deck so Lenis skips them. Wheel timing is
 // tracked even for events that pass through, so the inertia tail of a scroll back to the top never
 // counts as a fresh swipe and never kicks the deck back a chapter by accident.
-addEventListener('wheel',e=>{if(blockedInput(e)||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;const dir=Math.sign(e.deltaY);if(!dir)return;
-  const now=e.timeStamp||performance.now(),mag=Math.abs(e.deltaY);
-  if(scrollY>2||(stop===LAST&&dir>0&&settled())){lastWheel=now;lastDirection=dir;lastMag=mag;strokeArmed=false;return}
+// Ownership is latched at gesture start; a page gesture cannot re-enter the deck.
+let wheelOwner=false;
+addEventListener('wheel',e=>{
+  if(blockedInput(e)||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
+  const dir=Math.sign(e.deltaY);if(!dir)return;
+  const now=e.timeStamp||performance.now(),fresh=!lastWheel||now-lastWheel>220;
+  lastWheel=now;
+  if(fresh){wheelOwner=scrollY<=2&&!(stop===LAST&&dir>0&&settled());strokeSum=0;strokeArmed=wheelOwner}
+  if(scrollY>2){wheelOwner=false;strokeArmed=false}
+  if(!wheelOwner)return;
   e.preventDefault();e.__deck=true;
-  if(!lastWheel||now-lastWheel>140||dir!==lastDirection){strokeSum=0;strokeArmed=true}lastDirection=dir;strokeSum+=mag;const opening=strokeArmed&&strokeSum>6;const spike=mag>30&&mag>lastMag*1.6;lastWheel=now;lastMag=mag;
-  if((opening||spike)&&(!lastStep||now-lastStep>180)){strokeArmed=false;lastStep=now;step(dir)}else if(opening)strokeArmed=false},{passive:false});
+  strokeSum+=Math.abs(e.deltaY);
+  if(strokeArmed&&strokeSum>6){strokeArmed=false;step(dir)}
+},{passive:false});
 function clearTouch(){touchY=null;touchConsumed=false}
-addEventListener('touchstart',e=>{clearTouch();if(blockedInput(e)||e.touches.length!==1)return;touchY=e.touches[0].clientY},{passive:true});
-addEventListener('touchmove',e=>{if(e.touches.length!==1){clearTouch();return}if(blockedInput(e))return;if(touchConsumed){if(e.cancelable)e.preventDefault();return}if(touchY===null)return;const d=touchY-e.touches[0].clientY,dir=Math.sign(d);if(scrollY>2||(stop===LAST&&dir>0&&settled()))return;if(e.cancelable)e.preventDefault();if(Math.abs(d)>46){touchConsumed=true;touchY=null;step(dir)}},{passive:false});
+addEventListener('touchstart',e=>{clearTouch();if(blockedInput(e)||e.touches.length!==1||scrollY>2)return;touchY=e.touches[0].clientY},{passive:true});
+addEventListener('touchmove',e=>{
+  if(e.touches.length!==1||blockedInput(e)||scrollY>2){clearTouch();return}
+  if(touchConsumed){if(e.cancelable)e.preventDefault();return}
+  if(touchY===null)return;
+  const d=touchY-e.touches[0].clientY,dir=Math.sign(d);if(!dir)return;
+  if(stop===LAST&&dir>0&&settled()){clearTouch();return}
+  if(e.cancelable)e.preventDefault();
+  if(Math.abs(d)>46){touchConsumed=true;touchY=null;step(dir)}
+},{passive:false});
 addEventListener('touchend',clearTouch,{passive:true});addEventListener('touchcancel',clearTouch,{passive:true});
-addEventListener('keydown',e=>{if(blockedInput(e)||e.altKey||e.metaKey||e.ctrlKey||(e.key===' '&&e.target.closest('button,a')))return;if(scrollY>2)return;
+addEventListener('keydown',e=>{if(e.repeat||blockedInput(e)||e.altKey||e.metaKey||e.ctrlKey||(e.key===' '&&e.target.closest('button,a')))return;if(scrollY>2)return;
   if(e.key==='Home'||e.key==='End'){e.preventDefault();setStop(e.key==='Home'?0:LAST);return}
   const dir={ArrowDown:1,PageDown:1,' ':e.shiftKey?-1:1,ArrowUp:-1,PageUp:-1}[e.key];if(!dir)return;if(stop===LAST&&dir>0&&settled())return;e.preventDefault();if(!e.repeat)step(dir)});
 function toCanvas(e){const r=stage.getBoundingClientRect(),s=canvas.width/Math.max(1,r.width);return[(e.clientX-r.left)*s,(e.clientY-r.top)*s]}
@@ -331,11 +348,10 @@ addEventListener('pointerup',e=>{if(!down)return;const d=down;down=null;if(Math.
   const [x,y]=toCanvas(e);const h=hitAt(x,y);if(!h)return;if(d.type==='touch'){FX.px=x;FX.py=y;FX.tapId=h.id;FX.tapUntil=performance.now()+1600}FX.lastMove=performance.now();activate(h)},{passive:true});
 addEventListener('pointercancel',()=>{down=null},{passive:true});
 
-let scrollGrace=performance.now()+1000;
 function park(){if(stop!==LAST||!settled()){stop=LAST;cur=STOPS[LAST];vel=0}}
-addEventListener('scroll',()=>{if(staticMode)return;if(performance.now()<=scrollGrace){if(scrollY>0&&scrollY<120)window.scrollTo(0,0)}else if(scrollY>8)park();if(scrollY>8)FX.inside=false;paintUI();wake()},{passive:true});
+addEventListener('scroll',()=>{if(staticMode)return;if(scrollY>8)FX.inside=false;paintUI();wake()},{passive:true});
 const API={scrollTo:null};
-$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();scrollGrace=0;if(!staticMode)park();wake();if(API.scrollTo)API.scrollTo(t);else t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
+$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();if(!staticMode)park();wake();if(API.scrollTo)API.scrollTo(t);else t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
 $$('[data-chapter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.chapter;if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(scrollY>0)window.scrollTo(0,0);setStop(i)}));
 
 // ---- Phone app interactions (each one also answers in the scene) ----------------------------------
@@ -351,18 +367,26 @@ $$('.app-cta').forEach(b=>b.addEventListener('click',()=>{const act=b.dataset.ac
 // ---- Line-mask reveal (Concept B's splitter), shared with stack.js ------------------------------
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 function tokenize(el){const out=[];el.childNodes.forEach(n=>{if(n.nodeName==='BR')out.push({br:true});else if(n.nodeType===3)n.textContent.split(/\s+/).filter(Boolean).forEach(w=>out.push({w,g:false}));else if(n.nodeType===1){const g=n.classList.contains('grad-text');n.textContent.split(/\s+/).filter(Boolean).forEach(w=>out.push({w,g}))}});return out}
-function split(el){if(!el._src)el._src=el.innerHTML;el.innerHTML=el._src;const toks=tokenize(el);
+function split(el){const width=el.clientWidth;if(el._splitWidth===width&&el.classList.contains('split'))return[...el.querySelectorAll('.ln-i')];el._splitWidth=width;if(!el._src)el._src=el.innerHTML;el.innerHTML=el._src;const toks=tokenize(el);
   el.innerHTML=toks.map(t=>t.br?'<br>':`<span class="w">${esc(t.w)}</span>`).join(' ');const ws=[...el.querySelectorAll('.w')],lines=[];let last=null,k=0;
   toks.forEach(t=>{if(t.br){last=null;return}const top=Math.round(ws[k++].offsetTop);if(last===null||Math.abs(top-last)>4){lines.push([]);last=top}lines[lines.length-1].push(t)});
   el.innerHTML=lines.map((line,li)=>{let html='',inG=false;line.forEach((t,i)=>{if(t.g&&!inG){html+=(i?' ':'')+'<span class="grad-text">';inG=true}else if(!t.g&&inG){html+='</span> ';inG=false}else if(i)html+=' ';html+=esc(t.w)});if(inG)html+='</span>';return `<span class="ln"><span class="ln-i" style="--li:${li}">${html}</span></span>`}).join('');
   el.classList.add('split');return[...el.querySelectorAll('.ln-i')]}
 window.splitLines=split;
-let splitW=0;const splitChapters=()=>{if(innerWidth===splitW)return;splitW=innerWidth;sections.forEach(sec=>{let i=0;sec.querySelectorAll('.lines').forEach(el=>split(el).forEach(l=>l.style.setProperty('--li',i++)))})};
+let splitW=0;
+const splitChapters=async()=>{
+  if(innerWidth===splitW)return;
+  const width=splitW=innerWidth;
+  for(const sec of sections){let i=0;for(const el of sec.querySelectorAll('.lines')){
+    await yieldWork();if(width!==splitW)return;
+    split(el).forEach(l=>l.style.setProperty('--li',i++));
+  }}
+};
 (document.fonts?document.fonts.ready:Promise.resolve()).then(splitChapters);
 
 // ---- Reduced motion: static chapters, each with its own still and its own phone -------------------
 let stills=null;
-function paintStills(){if(!assetsReady)return;stills=stills||sections.map(s=>makeRenderer(s.querySelector('.still')));const dpr=Math.min(devicePixelRatio||1,2);sections.forEach((s,i)=>{const r=s.getBoundingClientRect();stills[i].resize(Math.round(r.width*dpr),Math.round(r.height*dpr));stills[i].drawScene(STOPS[i],0,0,null)})}
+function paintStills(){if(!assetsReady)return;stills=stills||sections.map(s=>makeRenderer(s.querySelector('.still')));const dpr=Math.min(devicePixelRatio||1,PHONE?1.25:2);sections.forEach((s,i)=>{const r=s.getBoundingClientRect();stills[i].resize(Math.round(r.width*dpr),Math.round(r.height*dpr));stills[i].drawScene(STOPS[i],0,0,null)})}
 function motionPreference(){staticMode=reduce.matches;document.body.classList.toggle('static-mode',staticMode);
   if(staticMode){if(raf){cancelAnimationFrame(raf);raf=0}intro.done=true;sections.forEach(el=>{el.inert=false;el.removeAttribute('aria-hidden');el.classList.add('on')});
     phones.forEach((p,j)=>{let w=sections[j+1].querySelector('.ph-static');if(!w){w=document.createElement('div');w.className='ph-static';sections[j+1].appendChild(w)}w.appendChild(p);p.style.transform='';p.style.opacity='';p.inert=false});
@@ -375,7 +399,7 @@ document.addEventListener('visibilitychange',()=>{lastTime=0;if(!document.hidden
 if('scrollRestoration'in history)history.scrollRestoration='manual';
 const hashIndex=sections.findIndex(s=>'#'+s.id===location.hash);
 let deepTarget=null;try{deepTarget=location.hash&&hashIndex<0?document.getElementById(decodeURIComponent(location.hash.slice(1))):null}catch{}
-if(deepTarget){stop=LAST;cur=STOPS[LAST];scrollGrace=0;intro.done=true;setTimeout(()=>deepTarget.scrollIntoView({block:'start'}),0)}else{window.scrollTo(0,0);if(hashIndex>0){stop=hashIndex;cur=STOPS[hashIndex];intro.done=true}}
+if(deepTarget){stop=LAST;cur=STOPS[LAST];intro.done=true;setTimeout(()=>deepTarget.scrollIntoView({block:'start'}),0)}else{window.scrollTo(0,0);if(hashIndex>0){stop=hashIndex;cur=STOPS[hashIndex];intro.done=true}}
 FX.lastMove=performance.now();
 loadA.then(()=>{sceneDirty=true;wake()});loadAll.then(()=>{sceneDirty=true;wake();if(staticMode)paintStills()});
 motionPreference();

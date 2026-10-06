@@ -30,16 +30,10 @@ a{color:inherit}
 .topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:22px var(--gut);pointer-events:none}
 .topbar img{width:112px;height:auto}
 
-/* ───────── stack ───────── */
-.stack{position:relative}
-.card{position:sticky;top:var(--top,0px);min-height:calc(100svh - var(--top,0px));border-radius:var(--card-r) var(--card-r) 0 0;overflow:hidden;transform-origin:50% var(--origin,0px);box-shadow:0 -18px 50px -20px rgba(16,16,16,.18);isolation:isolate;display:flex;flex-direction:column;justify-content:center;padding:clamp(72px,9vh,110px) 0 clamp(56px,8vh,96px)}
-.card>.dim{position:absolute;inset:0;background:#101010;opacity:0;pointer-events:none;z-index:30}
-.hold{height:var(--hold);pointer-events:none}
-/* Explicit, increasing z-order. With z-index:auto, Chrome let composited children of an earlier
-   card (coin, animated bars, rollout steps) paint over the next card mid-transition. */
-.stack>.card:nth-of-type(1){z-index:1}.stack>.card:nth-of-type(2){z-index:3}.stack>.card:nth-of-type(3){z-index:4}
-.stack>.card:nth-of-type(4){z-index:5}.stack>.card:nth-of-type(5){z-index:6}.stack>.card:nth-of-type(6){z-index:7}
-.stack>.card:nth-of-type(7){z-index:8}.stack>.card:nth-of-type(8){z-index:9}.stack>.card:nth-of-type(9){z-index:10}
+/* ───────── sections: plain flow, no stacking ───────── */
+.flow{position:relative}
+.card{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:center;padding:clamp(84px,11vh,128px) 0 clamp(72px,10vh,112px)}
+.card--white+.card--white{border-top:1px solid var(--line)}
 .card--white{background:var(--white)}
 .card--wash{background:var(--porcelain)}
 .card--wash::before,.card--wash2::before{content:"";position:absolute;inset:0;z-index:-1;background:url(../../shared/assets/img/gradient-3.webp) center/cover;opacity:.16}
@@ -49,7 +43,9 @@ a{color:inherit}
 .sec-head .display,.offer-head .display{font-size:clamp(2.3rem,5.4vw,5rem);max-width:15em}
 
 /* ───────── hero ───────── */
-.card--hero{border-radius:0;box-shadow:none;background:var(--porcelain);height:100svh;min-height:0;padding:0;justify-content:center;align-items:center}
+.hero{position:relative;height:calc(100svh + 110vh)}
+/* the hero stage holds while the M spreads (pure CSS, no JS pin, nothing to snap) */
+.hero-stage{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:center;align-items:center;background:var(--porcelain)}
 .hero-bg{position:absolute;inset:0;z-index:-1;background:url(../../shared/assets/img/porcelain-wash.webp) center/cover}
 .hero-bg::after{content:"";position:absolute;inset:0;background:url(../../shared/assets/img/grain.webp) center/512px repeat;opacity:.08;mix-blend-mode:multiply}
 .mark-stage{perspective:1200px}
@@ -265,8 +261,8 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15)}
   .calc{grid-template-columns:1fr}
 }
 @media (max-width:820px){
-  .card{padding:76px 0 56px}
-  .card--hero{padding:0}
+  .card{padding:72px 0 60px}
+  .hero{height:calc(100svh + 80vh)}
   .steps3{grid-template-columns:1fr;gap:14px}
   .crow{grid-template-columns:1fr;gap:2px;padding:14px 18px}
   .chead{display:none}
@@ -281,7 +277,8 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15)}
   .deck{display:flex;gap:12px;width:max-content}
   .step{width:min(74vw,300px)}
   .step-in{min-height:250px}
-  .deck-viewport{margin-right:calc(var(--gut) * -1)}
+  .deck-viewport{margin:-24px calc(var(--gut) * -1) -36px 0;padding:24px var(--gut) 36px 0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .deck-viewport::-webkit-scrollbar{display:none}
 }
 @media (max-width:520px){
   .topbar img{width:92px}
@@ -344,4 +341,9 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15)}
 .marquee.paused::after{content:"Paused";position:absolute;right:12px;top:50%;transform:translateY(-50%) rotate(2.2deg);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(16,16,16,.85);padding:.4em .8em;border-radius:99px}
 .seg-whole svg{transition:opacity .35s}
 .mark-stage.parallaxing .seg-whole svg{opacity:0}
-html.is-scrolling .stack,html.is-scrolling .marquee{pointer-events:none}
+html.is-scrolling .flow{pointer-events:none}
+
+/* Pre-reveal: everything JS will animate in stays hidden until its start state is set (no flash). */
+html.pre .mark-stage,html.pre .hero-intro,html.pre .topbar,html.pre .price,html.pre .steps3 li,html.pre .team,html.pre .crow,html.pre .why li,
+html.pre .calc-main,html.pre .calc-side,html.pre .engage-bar span,html.pre .vs-bar i,html.pre .eq-block,html.pre .eq-op,html.pre .types li,
+html.pre .drop,html.pre .clip-rr,html.pre .clip-circle,html.pre .step{visibility:hidden}

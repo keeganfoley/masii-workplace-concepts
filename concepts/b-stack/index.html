@@ -6,6 +6,7 @@
 <title>MASii Workplace · Stacked Wave</title>
 <meta name="description" content="MASii Workplace: company giving as an everyday benefit. Concept B, Stacked Wave.">
 <link rel="preload" href="../../shared/assets/fonts/CabinetGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<script>document.documentElement.className+=' js pre';setTimeout(function(){document.documentElement.classList.remove('pre')},6000)</script>
 <link rel="stylesheet" href="../../shared/brand.css">
 <link rel="stylesheet" href="stack.css">
 </head>
@@ -19,10 +20,11 @@
   <span class="eyebrow">Workplace</span>
 </header>
 
-<main class="stack" id="stack">
+<main class="flow" id="flow">
 
   <!-- 0 · HERO -->
-  <section class="card card--hero" id="hero" aria-labelledby="hero-h">
+  <section class="hero" id="hero" aria-labelledby="hero-h">
+   <div class="hero-stage">
     <div class="hero-bg" aria-hidden="true"></div>
     <div class="mark-stage" id="markStage" aria-hidden="true"></div>
     <div class="hero-intro" id="heroIntro">
@@ -35,8 +37,8 @@
       <p class="hero-sub" data-lines data-scrub>Your company funds it. Your people choose causes, build positive habits and access daily reward opportunities.</p>
     </div>
     <div class="scroll-cue" id="scrollCue" aria-hidden="true"><span>Scroll</span><i></i></div>
+   </div>
   </section>
-  <div class="hold" id="heroHold" style="--hold:150vh" aria-hidden="true"></div>
 
   <!-- marquee -->
   <div class="marquee" aria-label="MASii voice lines">
@@ -224,7 +226,6 @@
       <div class="deck-progress" aria-hidden="true"><i id="deckBar"></i></div>
     </div>
   </section>
-  <div class="hold" id="deckHold" style="--hold:130vh" aria-hidden="true"></div>
 
   <!-- 7 · LAUNCH -->
   <section class="card card--wash2" id="launch" aria-labelledby="launch-h">

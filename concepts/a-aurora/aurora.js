@@ -8,6 +8,7 @@
   const hasGSAP = !!(window.gsap && window.ScrollTrigger);
   const MOTION = !RM && hasGSAP;
   root.classList.add(MOTION ? 'js' : 'rm');
+  if (!MOTION) root.classList.remove('js');
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 
@@ -69,7 +70,7 @@ void main(){
     const U = n => ctx.getUniformLocation(pr, n);
     const uR = U('r'), uT = U('t'), uC = U('c'), uS = U('s'), uM = U('m');
     // It's a soft blur of light: DPR capped at 1.5, then rendered at ~1/4 of that and upscaled by the compositor.
-    const SCALE = Math.min(devicePixelRatio || 1, 1.5) * .26;
+    const SCALE = Math.min(devicePixelRatio || 1, FINE ? 1.5 : 1) * .26;
     const size = () => { cv.width = Math.max(2, Math.round(innerWidth * SCALE)); cv.height = Math.max(2, Math.round(innerHeight * SCALE)); ctx.viewport(0, 0, cv.width, cv.height); ctx.uniform2f(uR, cv.width, cv.height); };
     size(); addEventListener('resize', size);
     const mouse = [.5, .5], mt = [.5, .5];
@@ -123,6 +124,7 @@ void main(){
       });
     };
     walk(el, false);
+    if (MOTION && el.hasAttribute('data-reveal')) gsap.set($$('.w>span', el), { yPercent: 70, opacity: 0 });
     el.classList.add('is-split');
     return $$('.w>span', el);
   }
@@ -387,9 +389,25 @@ void main(){
      6. SMOOTH SCROLL + SCROLL CHOREOGRAPHY
      ============================================================ */
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true, autoRefreshEvents: 'none' });
+  let refreshTimer, lastScrollAt = 0;
+  addEventListener('scroll', () => { lastScrollAt = performance.now(); }, { passive: true });
+  function safeRefresh() {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => {
+      if (performance.now() - lastScrollAt < 250 || ScrollTrigger.isScrolling() || (lenis && lenis.isScrolling)) return safeRefresh();
+      ScrollTrigger.refresh();
+    }, 350);
+  }
+  let layoutW = innerWidth, layoutH = innerHeight;
+  addEventListener('resize', () => {
+    if (innerWidth === layoutW && (!FINE || innerHeight === layoutH)) return;
+    layoutW = innerWidth; layoutH = innerHeight; safeRefresh();
+  });
+  addEventListener('load', safeRefresh, { once: true });
   let lenis = null;
   if (window.Lenis) {
-    lenis = new Lenis({ lerp: .1, smoothWheel: true });
+    lenis = new Lenis({ lerp: .1, smoothWheel: !matchMedia('(any-pointer: coarse)').matches, syncTouch: false });
     window.__lenis = lenis;
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
@@ -451,16 +469,12 @@ void main(){
       ScrollTrigger.create({ trigger: sec, start: 'top 55%', end: 'bottom 55%', onToggle: s => { if (s.isActive) gl.target = idx; } });
     });
 
-    /* HOW — short pin. Inside it, a fresh gesture steps the deck immediately (one flick = one card),
-       then Lenis glides to that card's scroll position. Fresh swipe = a lull since the last wheel event
-       with real magnitude, or a spike during the previous flick's inertia tail (same rule as d-chapters). */
+    /* HOW — passive scroll progress; only a segment-button click requests a glide. */
     const SNAP = [0, .5, 1];
     let gliding = false, glideTimer = 0;
     const howST = ScrollTrigger.create({
       trigger: '.how', start: 'top top', end: () => '+=' + Math.round(innerHeight * 1.3), pin: '.how__inner', anticipatePin: 1, invalidateOnRefresh: true,
       onUpdate: s => { if (!gliding) setStep(s.progress < .25 ? 0 : s.progress < .75 ? 1 : 2); },
-      // arriving with momentum: land on the first card from above, the last card from below
-      onEnter: () => { if (!gliding && inPin()) glideTo(0, .55); }, onEnterBack: () => { if (!gliding && inPin()) glideTo(2, .55); },
     });
     const yFor = i => howST.start + (howST.end - howST.start) * SNAP[i];
     function glideTo(i, d = .7) {
@@ -473,44 +487,7 @@ void main(){
     }
     const posY = () => (lenis ? lenis.animatedScroll : scrollY);
     const inPin = () => { const y = posY(); return y >= howST.start - 1 && y <= howST.end + 1; };
-    // At the first card going up, or the last card going down, a fresh gesture is released to normal scrolling.
-    const exits = dir => (curStep === 0 && dir < 0) || (curStep === 2 && dir > 0);
-    let lastWheel = 0, lastMag = 0, lastStepAt = 0, strokeSum = 0, armed = false, lastDir = 0, passStroke = false;
-    addEventListener('wheel', e => {
-      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      const dir = Math.sign(e.deltaY); if (!dir) return;
-      const now = e.timeStamp || performance.now(), mag = Math.abs(e.deltaY);
-      const fresh = !lastWheel || now - lastWheel > 140 || dir !== lastDir;
-      if (fresh) { strokeSum = 0; armed = true; passStroke = false; }
-      const spike = mag > 30 && mag > lastMag * 1.6;
-      lastDir = dir; lastWheel = now; lastMag = mag;
-      if (passStroke || !inPin()) return;                         // normal page scrolling
-      if ((fresh || spike) && !gliding && exits(dir)) { passStroke = true; return; } // natural exit at either end
-      e.preventDefault(); e.stopPropagation();                    // Lenis never sees deck gestures
-      strokeSum += mag;
-      const opening = armed && strokeSum > 6;
-      if ((opening || spike) && now - lastStepAt > 180) {
-        armed = false; lastStepAt = now;
-        if (!exits(dir)) glideTo(curStep + dir);
-      } else if (opening) armed = false;                           // inertia tail: swallowed
-    }, { passive: false, capture: true });
-    // Touch: one swipe = one card; at the ends the swipe scrolls the page as usual.
-    let ty = null, tUsed = false;
-    addEventListener('touchstart', e => { ty = e.touches.length === 1 ? e.touches[0].clientY : null; tUsed = false; }, { passive: true });
-    addEventListener('touchmove', e => {
-      if (ty === null || !inPin() || e.target.closest('.teams__viewport')) return;
-      const d = ty - e.touches[0].clientY, dir = Math.sign(d);
-      if (!tUsed && exits(dir) && !gliding) { ty = null; return; }
-      if (e.cancelable) e.preventDefault();
-      if (!tUsed && Math.abs(d) > 40) { tUsed = true; glideTo(curStep + dir); }
-    }, { passive: false });
-    addEventListener('touchend', () => { ty = null; }, { passive: true });
-    // Fallback for scrollbar drags / keyboard: settle on the nearest card.
-    ScrollTrigger.addEventListener('scrollEnd', () => {
-      if (gliding) return;
-      const y = scrollY; if (y <= howST.start + 2 || y >= howST.end - 2) return;
-      if (Math.abs(yFor(curStep) - y) > 2) glideTo(curStep, .5);
-    });
+    // Wheel, touch, scrollbar and keyboard derive the step passively from progress.
     segs.forEach(s => s.addEventListener('click', () => { if (inPin()) glideTo(+s.dataset.go); else scrollToY(yFor(+s.dataset.go) + (+s.dataset.go === 0 ? 1 : 0), 1); }));
     // the whole deck leans slightly towards the pointer
     if (FINE) {
@@ -549,7 +526,7 @@ void main(){
     /* CLOSE */
     gsap.fromTo('.close__m', { opacity: 0, y: 60, scale: .8 }, { opacity: 1, y: 0, scale: 1, ease: 'none', scrollTrigger: { trigger: '.close', start: 'top 85%', end: 'top 25%', scrub: 1 } });
 
-    ScrollTrigger.refresh();
+    safeRefresh();
     ScrollTrigger.addEventListener('refresh', fitGrad);
   }
 

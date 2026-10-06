@@ -1,0 +1,27 @@
+'use strict';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const teams = [
+ ['People / HR','Low team connection.','Make company values part of everyday life.'],
+ ['Benefits / Rewards','Benefits get forgotten.','Give employees a benefit they can use all year.'],
+ ['CSR / Social Impact','Low participation.','Give staff a say in causes and show funded impact.'],
+ ['Recognition / Culture','Kindness goes unseen.','Recognize generosity, consistency and milestones.'],
+ ['Wellbeing','A need for connection.','Offer uplifting content, reflection and small actions.'],
+ ['Volunteering','Momentum fades.','Keep people involved between volunteer days.'],
+ ['Employer Brand','Claims need proof.','Use approved employee and impact stories in recruiting.'],
+ ['Employee Experience','Too many separate apps.','Bring giving, growth and rewards into one experience.']
+];
+const teamButtons = document.querySelector('.team-buttons');
+teams.forEach(([name,problem,answer],i)=>{const b=document.createElement('button');b.textContent=name;b.type='button';b.setAttribute('aria-pressed',String(i===0));b.addEventListener('click',()=>{teamButtons.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.querySelector('#problem').textContent=problem;document.querySelector('#answer').textContent=answer;});teamButtons.append(b);});
+const frequencies = [['2× daily',730],['1× daily',365],['3× weekly',156],['1× weekly',52]];
+const values=[10,10,10,20];const sliderArea=document.querySelector('#sliders');
+frequencies.forEach(([label],i)=>{const row=document.createElement('div');row.className='slider-row';row.innerHTML=`<label for="frequency-${i}">${label}<output id="value-${i}" for="frequency-${i}">${values[i]} employees</output></label><input id="frequency-${i}" type="range" min="0" max="100" step="1" value="${values[i]}">`;row.querySelector('input').addEventListener('input',e=>{values[i]=Math.min(Number(e.target.value),100-values.reduce((sum,n,j)=>sum+(j===i?0:n),0));document.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed','false'));update();});sliderArea.append(row);});
+const people=document.querySelector('.people-grid');for(let i=0;i<100;i++){const dot=document.createElement('span');dot.className='person';people.append(dot);}
+function update(){const engaged=values.reduce((a,b)=>a+b,0),visits=values.reduce((sum,n,i)=>sum+n*frequencies[i][1],0);values.forEach((n,i)=>{document.querySelector(`#frequency-${i}`).value=n;document.querySelector(`#value-${i}`).textContent=`${n} employees`;});document.querySelector('#engaged').textContent=engaged;document.querySelector('#engagements').textContent=visits.toLocaleString('en-US');document.querySelector('#unit-cost').textContent=visits?'$'+(12000/visits).toFixed(2):'—';people.childNodes.forEach((dot,i)=>dot.classList.toggle('on',i<engaged));}
+document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{values.splice(0,4,...(b.dataset.preset==='daily'?[0,50,0,0]:[10,10,10,20]));document.querySelectorAll('[data-preset]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));update();}));update();
+const formats={office:['Lunch + guided signup','Our team visits the office, brings lunch, demonstrates the app and helps employees sign up and make their first Play.'],remote:['Live demo + signup help','A launch for remote teams: live demo and signup help.'],shift:['Pop-ups around breaks','A launch for shift workers: pop-ups around breaks.'],new:['A first-week invitation','A launch for new hires: a first-week invitation.']};
+document.querySelectorAll('[data-format]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-format]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));const [title,copy]=formats[b.dataset.format];document.querySelector('#launch-title').textContent=title;document.querySelector('#launch-copy').textContent=copy;}));
+// Animate only on first entry. No scroll listeners, hidden initial state, or scroll writes.
+const observer=new IntersectionObserver(entries=>{entries.forEach(({target,isIntersecting})=>{if(!isIntersecting)return;observer.unobserve(target);if(reduced.matches)return;if(target.hasAttribute('data-count')){const end=Number(target.dataset.count);let start;function tick(now){if(reduced.matches){target.textContent=end;return;}start??=now;const t=Math.min((now-start)/750,1);target.textContent=Math.round(end*(1-Math.pow(1-t,3)));if(t<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);}else{target.classList.add('reveal-active');}});},{threshold:0,rootMargin:"0px 0px 100px 0px"});
+document.querySelectorAll('[data-reveal]').forEach(el=>{const parts=el.innerHTML.split('<br>');el.innerHTML=parts.map(s=>`<span class="reveal-line"><span>${s}</span></span>`).join('');observer.observe(el);});document.querySelectorAll('[data-count]').forEach(el=>{if(!reduced.matches)el.textContent='0';observer.observe(el);});
+const art=document.querySelector('.hero-art'),chrome=document.querySelector('.chrome');let tiltFrame=0;
+art.addEventListener('pointermove',e=>{if(reduced.matches||e.pointerType!=='mouse')return;const box=art.getBoundingClientRect(),x=(e.clientX-box.left)/box.width-.5,y=(e.clientY-box.top)/box.height-.5;cancelAnimationFrame(tiltFrame);tiltFrame=requestAnimationFrame(()=>{chrome.style.transform=`rotateX(${-y*16}deg) rotateY(${x*22}deg) rotate(-12deg) translate3d(${x*10}px,${y*10}px,0)`;});});art.addEventListener('pointerleave',()=>{cancelAnimationFrame(tiltFrame);chrome.style.transform='';});

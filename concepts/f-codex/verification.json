@@ -1,0 +1,13 @@
+{
+  "status": "partial; required Playwright runtime blocked",
+  "playwright_blocker": "Bundled Chromium executable absent. Installed Chrome aborts with SIGABRT under execution sandbox; escalation unavailable.",
+  "fallback": "Connected Chrome browser preview with Playwright locators; viewport sizing only, not iPhone device emulation",
+  "viewports": [
+    {"width":1440,"height":900,"capturedConsoleErrors":0,"horizontalOverflowPx":0,"idleScrollDeltaPx":0,"idleObservation":"more than 3 seconds","raf4xP95Ms":null,"raf4xMaxMs":null,"reducedMotionRuntime":"not run"},
+    {"width":390,"height":844,"capturedConsoleErrors":0,"horizontalOverflowPx":0,"idleScrollDeltaPx":0,"idleObservation":"more than 3 seconds","raf4xP95Ms":null,"raf4xMaxMs":null,"reducedMotionRuntime":"not run"}
+  ],
+  "interactionChecks": {"sourceExample":"13,550 engagements / $0.89","dailyExample":"18,250 engagements / $0.66","zeroEngagement":"em dash; no divide-by-zero","capacity":"100 employees maximum","teamSelector":"pass","launchSelector":"pass"},
+  "staticChecks": {"javascriptSyntax":"pass","localAssetsAndLinks":"pass","reducedMotion":"CSS and JS fallbacks implemented; runtime unverified"},
+  "visualReview": "Hero, team selector, calculator and launch planner inspected in connected Chrome. Final reveal timing adjustment is not performance-verified.",
+  "rerun": "cd /Users/keeganfoley/MASIIIIIIII/site/_tools && node ../concepts/f-codex/verify.mjs"
+}

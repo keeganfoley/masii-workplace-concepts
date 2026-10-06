@@ -123,32 +123,24 @@ const set = track.firstElementChild;
 const clone = set.cloneNode(true); clone.setAttribute('aria-hidden', 'true');
 track.appendChild(clone);
 
-if (!hasGsap) { lineEls.forEach(el => el.classList.add('split')); return; }
+if (!hasGsap) { lineEls.forEach(el => el.classList.add('split')); document.documentElement.classList.remove('pre'); return; }
 
 /* ───────── 6. Motion ───────── */
 gsap.registerPlugin(ScrollTrigger);
+// URL-bar show/hide on phones must never re-measure (and so never move) anything
 ScrollTrigger.config({ ignoreMobileResize: true });
-const cards = $$('.stack > .card');
-// zero-height flow markers: sticky cards report shifted positions, these never do
-const marks = cards.map(c => { const m = document.createElement('div'); m.className = 'flow-mark'; c.before(m); return m; });
-const absTop = el => el.getBoundingClientRect().top + window.scrollY;
-// flow top of card i = its marker's top + the marker's height (a reading hold after tall cards)
-const cardTop = i => absTop(marks[i]) + marks[i].offsetHeight;
-function flowTop(el) {
-  const card = el.closest('.card');
-  if (!card) return absTop(el);
-  let y = 0, n = el;
-  while (n && n !== card) { y += n.offsetTop; n = n.offsetParent; }
-  return cardTop(cards.indexOf(card)) + y;
-}
+const unpre = () => document.documentElement.classList.remove('pre');
 
+const isMob = () => innerWidth <= 820;
+const fine = matchMedia('(hover: hover) and (pointer: fine)');
+
+// Smooth wheel only for mouse/trackpad desktops. Touch devices keep 100% native momentum scrolling.
+// Nothing ever calls scrollTo: no snapping, no settling, no re-sync jumps.
 let lenis = null;
-if (!reduce && window.Lenis) {
-  lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
+if (!reduce && window.Lenis && fine.matches) {
+  lenis = new Lenis({ duration: 1, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true, syncTouch: false });
   lenis.on('scroll', ScrollTrigger.update);
-  // keep Lenis' target in sync after any ScrollTrigger refresh (which measures at native scroll),
-  // otherwise the next wheel tick animates from a stale position and the page jumps
-  ScrollTrigger.addEventListener('refresh', () => { lenis.resize(); lenis.scrollTo(window.scrollY, { immediate: true, force: true }); });
+  ScrollTrigger.addEventListener('refresh', () => lenis.resize());
   // while the page moves, nothing under a resting cursor should hover, tilt or pop a tooltip
   let st, scrolling = false;
   lenis.on('scroll', () => {
@@ -159,49 +151,27 @@ if (!reduce && window.Lenis) {
   gsap.ticker.lagSmoothing(0);
 }
 
-const isMob = () => innerWidth <= 820;
-const fine = matchMedia('(hover: hover) and (pointer: fine)');
-function layoutCards() {
-  const vh = innerHeight;
-  cards.forEach((c, i) => {
-    if (i === 0) return;
-    const base = isMob() ? 6 + i * 4 : 10 + i * 7;
-    c.style.setProperty('--base', base + 'px');
-    c.style.setProperty('--top', base + 'px');
-    c.style.minHeight = `calc(100svh - ${base}px)`;
-    const h = c.offsetHeight;
-    // Taller than the viewport: pin by the bottom edge (top = vh - h, never above 0),
-    // and hold it there for a read before the next card is allowed to rise over it.
-    const tall = h > vh - base;
-    const top = tall ? Math.min(0, vh - h) : base;
-    c.style.setProperty('--top', top + 'px');
-    const m = marks[i + 1];
-    if (m) m.style.height = tall && !c.nextElementSibling.classList.contains('hold') ? Math.round(vh * .35) + 'px' : '0px';
-    c.style.setProperty('--origin', Math.max(0, -top) + 'px');
-    c._top = top;
-  });
-  cards[0]._top = 0;
-}
-
 const EASE = 'expo.out';
-const startFonts = document.fonts ? document.fonts.ready : Promise.resolve();
+// don't wait on slow font loads forever: start within 1.5s either way
+const startFonts = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1500))]);
 startFonts.then(init);
+
+/* count-up: "$30,000" counts from 0 when its block reveals; text is set to 0 while still hidden */
+function prepCount(el) {
+  const m = el.textContent.match(/^([^\d]*)([\d,]+)(.*)$/);
+  if (!m) return null;
+  const to = +m[2].replace(/,/g, ''), o = { v: 0 };
+  el.setAttribute('aria-label', el.textContent);
+  el.textContent = m[1] + '0' + m[3];
+  return () => gsap.to(o, { v: to, duration: 1.4, ease: 'power3.out', onUpdate: () => { el.textContent = m[1] + Math.round(o.v).toLocaleString('en-US') + m[3]; } });
+}
 
 function init() {
   lineEls.forEach(el => split(el));
-  layoutCards();
 
-  if (reduce) {
-    cards.forEach(c => c.appendChild(Object.assign(document.createElement('div'), { className: 'dim' })));
-    buildHero(true);
-    explainers();
-    return;
-  }
+  if (reduce) { buildHero(true); explainers(); unpre(); return; }
 
-  // dim layers
-  cards.forEach(c => c.appendChild(Object.assign(document.createElement('div'), { className: 'dim' })));
-
-  /* hero: load-in stack */
+  /* hero: load-in stack (start state set before anything is shown) */
   const heroLines = $$('.ln-i', $('.hero-story'));
   gsap.set(heroLines, { yPercent: 110 });
   gsap.from(segs.map(s => s.firstElementChild), {
@@ -216,32 +186,16 @@ function init() {
   gsap.from('#heroIntro .eyebrow, .topbar', { opacity: 0, y: 12, duration: 1, ease: EASE, delay: .7 });
   buildHero(false);
 
-  /* stacking: previous card shrinks and dims as the next one rises */
-  cards.forEach((c, i) => {
-    const next = cards[i + 1];
-    if (!next) return;
-    const dark = c.classList.contains('card--dark');
-    gsap.timeline({
-      scrollTrigger: {
-        start: () => cardTop(i + 1) - innerHeight,
-        end: () => cardTop(i + 1) - next._top,
-        scrub: true, invalidateOnRefresh: true
-      }
-    })
-      .to(c, { scale: isMob() ? .95 : .93, ease: 'none' }, 0)
-      .to(c.querySelector(':scope > .dim'), { opacity: dark ? .2 : .32, ease: 'none' }, 0);
-  });
-
-  /* line reveals */
+  /* line reveals: each line rises from behind its mask */
   lineEls.filter(el => !el.hasAttribute('data-scrub') && !el.hasAttribute('data-instant')).forEach(el => {
     gsap.set($$('.ln-i', el), { yPercent: 110 });
     ScrollTrigger.create({
-      start: () => flowTop(el) - innerHeight * .86, end: 'max', once: true, invalidateOnRefresh: true,
+      trigger: el, start: 'top 88%', once: true,
       onEnter: () => { el._shown = true; gsap.to($$('.ln-i', el), { yPercent: 0, duration: 1.15, ease: EASE, stagger: .085 }); }
     });
   });
 
-  /* stagger groups: layers that drop into place */
+  /* stagger groups: layers that drop into place (+ count-ups inside them) */
   const groups = [
     ['.price-stack', '.price', { y: 70, rotate: (i) => [-4, 5, -3, 4][i % 4], opacity: 0 }],
     ['.steps3', 'li', { y: 40, opacity: 0 }],
@@ -260,14 +214,15 @@ function init() {
     $$(p).forEach(parent => {
       const kids = $$(c, parent);
       gsap.set(kids, from);
+      const counts = $$('.price strong, .eq-block strong', parent).map(prepCount).filter(Boolean);
       ScrollTrigger.create({
-        start: () => flowTop(parent) - innerHeight * .88, end: 'max', once: true, invalidateOnRefresh: true,
-        onEnter: () => gsap.to(kids, { y: 0, rotate: 0, opacity: 1, scale: 1, scaleX: 1, scaleY: 1, duration: 1.1, ease: EASE, stagger: .07 })
+        trigger: parent, start: 'top 88%', once: true,
+        onEnter: () => { gsap.to(kids, { y: 0, rotate: 0, opacity: 1, scale: 1, scaleX: 1, scaleY: 1, duration: 1.1, ease: EASE, stagger: .07 }); counts.forEach(f => f()); }
       });
     });
   });
 
-  /* clip-path reveals */
+  /* clip-path reveals, queued so only one or two run at once */
   let clipSlot = 0;
   $$('.clip-rr, .clip-circle').forEach(el => {
     const circle = el.classList.contains('clip-circle');
@@ -275,7 +230,7 @@ function init() {
     gsap.set(el, { clipPath: circle ? 'circle(0% at 50% 50%)' : 'inset(46% 46% 46% 46% round 200px)' });
     gsap.set(img, { scale: 1.25 });
     ScrollTrigger.create({
-      start: () => flowTop(el) - innerHeight * .9, end: 'max', once: true, invalidateOnRefresh: true,
+      trigger: el, start: 'top 90%', once: true,
       onEnter: () => {
         const now = performance.now() / 1000, at = Math.max(now, clipSlot);
         clipSlot = at + .22;
@@ -287,25 +242,25 @@ function init() {
     });
   });
 
-  /* close: big headline + ii pattern drift */
-  gsap.to('.ii', { yPercent: -8, ease: 'none', scrollTrigger: { start: () => cardTop(marks.length - 1) - innerHeight, end: 'max', scrub: true, invalidateOnRefresh: true } });
+  /* close: ii pattern drifts gently as the last section passes */
+  gsap.to('.ii', { yPercent: -8, ease: 'none', scrollTrigger: { trigger: '#close', start: 'top bottom', end: 'bottom top', scrub: true } });
 
-  /* rollout: stacked deck fans out horizontally */
+  /* rollout: stacked deck fans out once, time-based */
   buildDeck();
 
-  /* marquee: direction follows scroll direction, speed follows velocity */
+  /* marquee: direction follows scroll direction, speed follows velocity (no layout reads) */
   let mx = 0, dir = -1, vel = 0, boost = 0, setW = set.offsetWidth, mqVisible = false, run = 1, paused = false;
   const band = $('.marquee');
   new IntersectionObserver(([e]) => { mqVisible = e.isIntersecting; track.style.willChange = mqVisible ? 'transform' : ''; }).observe(band);
-  if (lenis) lenis.on('scroll', e => { if (e.direction) dir = e.direction > 0 ? -1 : 1; vel = Math.abs(e.velocity || 0); });
+  ScrollTrigger.create({ start: 0, end: 'max', onUpdate: self => { dir = self.direction > 0 ? -1 : 1; vel = Math.abs(self.getVelocity()) / 90; } });
   const setPause = v => { paused = v; band.classList.toggle('paused', v); };
   band.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') setPause(true); });
   band.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setPause(false); });
-  band.addEventListener('click', e => { if (!fine.matches) setPause(!paused); });
+  band.addEventListener('click', () => { if (!fine.matches) setPause(!paused); });
   gsap.ticker.add((t, dt) => {
     vel *= .9;
-    if (!mqVisible) return;                       // nothing to do off-screen
-    run += ((paused ? 0 : 1) - run) * .12;         // ease to a stop on hover
+    if (!mqVisible) return;
+    run += ((paused ? 0 : 1) - run) * .12;
     boost += (Math.min(vel * .35, 9) - boost) * .08;
     mx += dir * 70 * (dt / 1000) * (1 + boost) * run;
     if (mx <= -setW) mx += setW; else if (mx > 0) mx -= setW;
@@ -315,9 +270,9 @@ function init() {
   interactions();
   explainers();
 
-  /* responsive rebuild */
+  /* responsive rebuild: only on a real width change (never on URL-bar height changes) */
   let lastW = innerWidth;
-  ScrollTrigger.addEventListener('refreshInit', () => { layoutCards(); setW = set.offsetWidth; });
+  ScrollTrigger.addEventListener('refreshInit', () => { setW = set.offsetWidth; });
   addEventListener('resize', () => {
     if (innerWidth === lastW) return;
     lastW = innerWidth;
@@ -329,17 +284,16 @@ function init() {
     buildHero(false);
   });
   ScrollTrigger.refresh();
-  let rt;
-  const safeRefresh = () => { clearTimeout(rt); rt = setTimeout(() => (lenis && lenis.isScrolling) ? safeRefresh() : ScrollTrigger.refresh(), 350); };
-  if (document.readyState !== 'complete') addEventListener('load', safeRefresh, { once: true });
-  // lazy images all carry width/height, so their arrival never changes layout: no refresh mid-scroll
+  unpre();   // every start state is set; now it is safe to show
+  // One refresh after load (fonts/images). There are no pins, so a refresh can never move scrollY.
+  if (document.readyState !== 'complete') addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
 }
 
 /* hero scroll: layers spread apart in depth, headline rises from behind them */
 let heroTL;
 function buildHero(staticEnd) {
   if (heroTL) { heroTL.scrollTrigger && heroTL.scrollTrigger.kill(); heroTL.kill(); }
-  const hold = $('#heroHold');
+  const hero = $('#hero');
   const mob = () => isMob();
   const P = () => mob()
     ? [{ x: -.2, y: -.34, s: .9, r: -10 }, { x: -.16, y: .36, s: 1.25, r: 7 }, { x: .16, y: -.36, s: .95, r: -6 }, { x: .2, y: .33, s: 1.45, r: 10 }]
@@ -349,7 +303,7 @@ function buildHero(staticEnd) {
   heroTL = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: staticEnd ? null : {
-      start: 0, end: () => hold.offsetTop + hold.offsetHeight - innerHeight,
+      trigger: hero, start: 'top top', end: 'bottom bottom',
       scrub: .6, invalidateOnRefresh: true
     }
   });
@@ -386,7 +340,7 @@ function interactions() {
     rx: gsap.quickTo(el, 'rotationX', { duration: 1.1, ease: 'power3.out' }), ry: gsap.quickTo(el, 'rotationY', { duration: 1.1, ease: 'power3.out' })
   }));
   const hero = $('#hero');
-  const heroLive = () => window.scrollY < hero.offsetHeight * 2.2;
+  const heroLive = () => window.scrollY < hero.offsetHeight;
   const aim = (nx, ny) => qs.forEach((q, i) => { const d = DEPTH[i]; q.x(nx * 26 * d); q.y(ny * 18 * d); q.ry(nx * 14); q.rx(-ny * 10); });
   addEventListener('pointermove', raf(e => {
     if (!ready || e.pointerType !== 'mouse' || !heroLive()) return;
@@ -507,29 +461,25 @@ function explainers() {
 }
 
 function buildDeck() {
-  const deck = $('#deck'), steps = $$('.step', deck), hold = $('#deckHold'), bar = $('#deckBar');
-  const mm = gsap.matchMedia();
-  const st = () => ({
-    start: () => absTop(hold) - innerHeight * 1.05,
-    end: () => absTop(hold) + hold.offsetHeight - innerHeight,
-    scrub: .5, invalidateOnRefresh: true
+  const deck = $('#deck'), steps = $$('.step', deck), bar = $('#deckBar'), vp = deck.parentElement;
+  // starts stacked like a deck, fans out once when it scrolls into view (time-based, never pinned)
+  const stacked = () => isMob()
+    ? { x: i => steps[0].offsetLeft - steps[i].offsetLeft + i * 10, y: i => i * -8, rotate: i => [0, 5, -5, 8, -8][i], scale: 1 }
+    : { x: i => deck.offsetWidth / 2 - (steps[i].offsetLeft + steps[i].offsetWidth / 2) + i * 14, y: i => i * -10, rotate: i => [0, 5, -5, 9, -9][i], scale: i => 1 - i * .02 };
+  gsap.set(steps, stacked());
+  ScrollTrigger.create({
+    trigger: deck, start: 'top 78%', once: true,
+    onEnter: () => {
+      gsap.to(steps, { x: 0, y: 0, rotate: 0, scale: 1, duration: 1.3, ease: 'power3.inOut', stagger: .09, delay: .15, clearProps: 'transform' });
+      if (!isMob()) gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 1.7, ease: 'power2.inOut', delay: .15 });
+    }
   });
-  mm.add('(min-width: 821px)', () => {
-    const tl = gsap.timeline({ scrollTrigger: st() });
-    tl.fromTo(steps, {
-      x: i => deck.offsetWidth / 2 - (steps[i].offsetLeft + steps[i].offsetWidth / 2) + i * 14,
-      y: i => i * -10, rotate: i => [0, 5, -5, 9, -9][i], scale: i => 1 - i * .02
-    }, { x: 0, y: 0, rotate: 0, scale: 1, duration: 1, ease: 'power3.inOut', stagger: .06 }, 0).fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 1.24, ease: 'none' }, 0)
-      .to({}, { duration: .2 });
-  });
-  mm.add('(max-width: 820px)', () => {
-    const tl = gsap.timeline({ scrollTrigger: st() });
-    tl.fromTo(steps, {
-      x: i => steps[0].offsetLeft - steps[i].offsetLeft + i * 10,
-      y: i => i * -8, rotate: i => [0, 5, -5, 8, -8][i]
-    }, { x: 0, y: 0, rotate: 0, duration: .5, ease: 'power3.inOut', stagger: .04 }, 0)
-      .to(deck, { x: () => -(deck.scrollWidth - deck.parentElement.offsetWidth + 16), duration: 1, ease: 'none' }, .55)
-      .fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 1.55, ease: 'none' }, 0);
-  });
+  // phones: the fanned row is a native horizontal swipe; the bar tracks it (passive, rAF-batched)
+  let q = false;
+  vp.addEventListener('scroll', () => {
+    if (q) return; q = true;
+    requestAnimationFrame(() => { q = false; const m = vp.scrollWidth - vp.clientWidth; bar.style.transform = `scaleX(${m > 0 ? .2 + .8 * vp.scrollLeft / m : 1})`; });
+  }, { passive: true });
+  if (isMob()) bar.style.transform = 'scaleX(.2)';
 }
 })();

@@ -37,7 +37,8 @@ html.tag-hide .concept-tag{transform:translateY(-170%);opacity:0}
 .sec-head .display{font-size:clamp(2.3rem,5.2vw,4.8rem);max-width:15em}
 .ln{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
 .ln-i{display:block}
-.js [data-lines]:not(.split){visibility:hidden}
+.js [data-lines]:not(.split),.js .chapter .lines:not(.split){visibility:hidden}
+.js:not(.static-reveals) [data-lines]:not(.revealed) .ln-i{transform:translate3d(0,110%,0)}
 .card--white{background:var(--white)}
 .card--wash,.card--wash2{background:var(--porcelain)}
 .card--wash::before,.card--wash2::before{content:"";position:absolute;inset:0;z-index:-1;background:url(../../shared/assets/img/gradient-3.webp) center/cover;opacity:.16}
@@ -497,6 +498,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.18)}
   .hint-dot,.scroll-cue.release .cue-arrow{animation:none}
   .team-in,.be-bar i,.vs-bar i,.dots i,.scale .beam{transition:none}
   .js [data-lines]:not(.split){visibility:visible}
+  .js [data-lines] .ln-i{transform:none!important}
   .vs-bar i{transform:scaleX(var(--w))}
   .scale .beam{transform:none}
   .concept-tag{transition:none}

@@ -186,7 +186,7 @@ function makeRenderer(cv,fx=null){
 
 // ---- Deck state ----------------------------------------------------------------------------------
 const film=makeRenderer(canvas,FX);
-let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight,lastWheel=0,lastMag=0,lastStep=0,strokeSum=0,strokeArmed=false,lastDirection=0,touchY=null,touchConsumed=false;
+let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight,lastWheel=0,strokeSum=0,strokeArmed=false,touchY=null,touchConsumed=false;
 let quality=1,glideDeltas=[],wasSettled=true;// adaptive resolution: lowered (at rest) only if glides miss frames
 const metrics={draws:0,drawMs:[],ticks:0};
 const settled=()=>Math.abs(STOP_IDX[stop]-cur)<.25&&Math.abs(vel)<.8;
@@ -260,24 +260,41 @@ function wake(){if(!raf&&!staticMode&&!document.hidden)raf=requestAnimationFrame
 // Adaptive resolution: if a glide dropped frames, render a little softer from the next glide on.
 function adapt(){if(glideDeltas.length<20){glideDeltas=[];return}const a=[...glideDeltas].sort((x,y)=>x-y),p80=a[Math.floor(a.length*.8)];glideDeltas=[];if(p80>21&&quality>.72){quality=Math.max(.7,quality-.15);lastW=0;measure()}}
 let lastW=0,lastH=0;
-function measure(){const b=stage.getBoundingClientRect(),w=Math.round(b.width),h=Math.round(b.height);viewH=h||innerHeight;if(lastW&&w===lastW&&Math.abs(h-lastH)<120&&PHONE)return;// mobile address-bar changes never resize the canvas
-  lastW=w;lastH=h;scrollGrace=performance.now()+800;const dpr=Math.min(devicePixelRatio||1,2)*quality;film.resize(Math.round(w*dpr),Math.round(h*dpr));sceneDirty=true;wake()}
+function measure(){const b=stage.getBoundingClientRect(),w=Math.round(b.width),h=Math.round(b.height);viewH=h||innerHeight;if(lastW&&w===lastW&&(h===lastH||(Math.abs(h-lastH)<120&&PHONE)))return;// mobile address-bar changes never resize the canvas
+  lastW=w;lastH=h;const dpr=Math.min(devicePixelRatio||1,PHONE?1.25:2)*quality;film.resize(Math.round(w*dpr),Math.round(h*dpr));sceneDirty=true;wake()}
 
 // ---- Gestures ------------------------------------------------------------------------------------
 function setStop(i){i=clamp(i,0,LAST);if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(i===stop&&settled())return;stop=i;FX.tapId=null;wake()}
 function step(dir){setStop(stop+dir)}
 function blockedInput(e){return staticMode||!!(e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]'))}
 // Fresh swipe = a lull since the last wheel event with real magnitude, or a spike during the previous flick's inertia tail.
-addEventListener('wheel',e=>{if(blockedInput(e)||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;const dir=Math.sign(e.deltaY);if(!dir)return;
-  if(scrollY>2||(stop===LAST&&dir>0&&settled()))return;// at the last chapter the page releases natively into the editorial, and back
-  e.preventDefault();const now=e.timeStamp||performance.now(),mag=Math.abs(e.deltaY);
-  if(!lastWheel||now-lastWheel>140||dir!==lastDirection){strokeSum=0;strokeArmed=true}lastDirection=dir;strokeSum+=mag;const opening=strokeArmed&&strokeSum>6;const spike=mag>30&&mag>lastMag*1.6;lastWheel=now;lastMag=mag;
-  if((opening||spike)&&(!lastStep||now-lastStep>180)){strokeArmed=false;lastStep=now;step(dir)}else if(opening)strokeArmed=false},{passive:false});
+// Ownership is latched at gesture start; a page gesture cannot re-enter the deck.
+let wheelOwner=false;
+addEventListener('wheel',e=>{
+  if(blockedInput(e)||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
+  const dir=Math.sign(e.deltaY);if(!dir)return;
+  const now=e.timeStamp||performance.now(),fresh=!lastWheel||now-lastWheel>220;
+  lastWheel=now;
+  if(fresh){wheelOwner=scrollY<=2&&!(stop===LAST&&dir>0&&settled());strokeSum=0;strokeArmed=wheelOwner}
+  if(scrollY>2){wheelOwner=false;strokeArmed=false}
+  if(!wheelOwner)return;
+  e.preventDefault();e.__deck=true;
+  strokeSum+=Math.abs(e.deltaY);
+  if(strokeArmed&&strokeSum>6){strokeArmed=false;step(dir)}
+},{passive:false});
 function clearTouch(){touchY=null;touchConsumed=false}
-addEventListener('touchstart',e=>{clearTouch();if(blockedInput(e)||e.touches.length!==1)return;touchY=e.touches[0].clientY},{passive:true});
-addEventListener('touchmove',e=>{if(e.touches.length!==1){clearTouch();return}if(blockedInput(e))return;if(touchConsumed){if(e.cancelable)e.preventDefault();return}if(touchY===null)return;const d=touchY-e.touches[0].clientY,dir=Math.sign(d);if(scrollY>2||(stop===LAST&&dir>0&&settled()))return;if(e.cancelable)e.preventDefault();if(Math.abs(d)>46){touchConsumed=true;touchY=null;step(dir)}},{passive:false});
+addEventListener('touchstart',e=>{clearTouch();if(blockedInput(e)||e.touches.length!==1||scrollY>2)return;touchY=e.touches[0].clientY},{passive:true});
+addEventListener('touchmove',e=>{
+  if(e.touches.length!==1||blockedInput(e)||scrollY>2){clearTouch();return}
+  if(touchConsumed){if(e.cancelable)e.preventDefault();return}
+  if(touchY===null)return;
+  const d=touchY-e.touches[0].clientY,dir=Math.sign(d);if(!dir)return;
+  if(stop===LAST&&dir>0&&settled()){clearTouch();return}
+  if(e.cancelable)e.preventDefault();
+  if(Math.abs(d)>46){touchConsumed=true;touchY=null;step(dir)}
+},{passive:false});
 addEventListener('touchend',clearTouch,{passive:true});addEventListener('touchcancel',clearTouch,{passive:true});
-addEventListener('keydown',e=>{if(blockedInput(e)||e.altKey||e.metaKey||e.ctrlKey||(e.key===' '&&e.target.closest('button,a')))return;if(scrollY>2)return;
+addEventListener('keydown',e=>{if(e.repeat||blockedInput(e)||e.altKey||e.metaKey||e.ctrlKey||(e.key===' '&&e.target.closest('button,a')))return;if(scrollY>2)return;
   if(e.key==='Home'||e.key==='End'){e.preventDefault();setStop(e.key==='Home'?0:LAST);return}
   const dir={ArrowDown:1,PageDown:1,' ':e.shiftKey?-1:1,ArrowUp:-1,PageUp:-1}[e.key];if(!dir)return;if(stop===LAST&&dir>0&&settled())return;e.preventDefault();if(!e.repeat)step(dir)});
 // Pointer: hover on mouse/pen; a tap (short, still press) on any pointer triggers the same reaction as a click.
@@ -290,11 +307,10 @@ addEventListener('pointerup',e=>{if(!down)return;const d=down;down=null;if(Math.
   const [x,y]=toCanvas(e);const h=hitAt(x,y);if(!h)return;if(d.type==='touch'){FX.px=x;FX.py=y;FX.tapId=h.id;FX.tapUntil=performance.now()+1600}FX.lastMove=performance.now();activate(h)},{passive:true});
 addEventListener('pointercancel',()=>{down=null},{passive:true});
 
-let scrollGrace=performance.now()+1000;// browser scroll jitter right after load or a resize must not park the deck
 function park(){if(stop!==LAST||!settled()){stop=LAST;cur=STOP_IDX[LAST];vel=0}}
-addEventListener('scroll',()=>{if(staticMode)return;if(performance.now()<=scrollGrace){if(scrollY>0&&scrollY<120)window.scrollTo(0,0)}else if(scrollY>8)park();if(scrollY>8)FX.inside=false;paintUI();wake()},{passive:true});
+addEventListener('scroll',()=>{if(staticMode)return;if(scrollY>8)FX.inside=false;paintUI();wake()},{passive:true});
 // In-page links below the deck: park the film on its finale, then glide the page there.
-$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();scrollGrace=0;if(!staticMode)park();wake();t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
+$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();if(!staticMode)park();wake();t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
 $$('[data-chapter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.chapter;if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(scrollY>0)window.scrollTo(0,0);setStop(i)}));
 
 // ---- Editorial reveals + calculation tooltips ----------------------------------------------------------
@@ -305,7 +321,7 @@ $$('.calc').forEach(el=>{const fit=()=>{el.style.setProperty('--nudge','0px');co
 
 // ---- Reduced motion: static stacked chapters, each with its own still of the tableau --------------
 let stills=null;
-function paintStills(){if(!assetsReady)return;stills=stills||sections.map(s=>makeRenderer(s.querySelector('.still')));const dpr=Math.min(devicePixelRatio||1,2);sections.forEach((s,i)=>{const r=s.getBoundingClientRect();stills[i].resize(Math.round(r.width*dpr),Math.round(r.height*dpr));stills[i].drawScene(STOPS[i],0)})}
+function paintStills(){if(!assetsReady)return;stills=stills||sections.map(s=>makeRenderer(s.querySelector('.still')));const dpr=Math.min(devicePixelRatio||1,PHONE?1.25:2);sections.forEach((s,i)=>{const r=s.getBoundingClientRect();stills[i].resize(Math.round(r.width*dpr),Math.round(r.height*dpr));stills[i].drawScene(STOPS[i],0)})}
 function motionPreference(){staticMode=reduce.matches;document.body.classList.toggle('static-mode',staticMode);
   if(staticMode){if(raf){cancelAnimationFrame(raf);raf=0}sections.forEach(el=>{el.inert=false;el.removeAttribute('aria-hidden');el.classList.add('on')});loadAll.then(paintStills)}
   else{shown=-2;measure();paintUI();wake()}}
@@ -316,7 +332,7 @@ document.addEventListener('visibilitychange',()=>{lastTime=0;if(!document.hidden
 if('scrollRestoration'in history)history.scrollRestoration='manual';
 const hashIndex=sections.findIndex(s=>'#'+s.id===location.hash);
 let deepTarget=null;try{deepTarget=location.hash&&hashIndex<0?document.getElementById(decodeURIComponent(location.hash.slice(1))):null}catch{}
-if(deepTarget){stop=LAST;cur=STOP_IDX[LAST];scrollGrace=0;setTimeout(()=>deepTarget.scrollIntoView({block:'start'}),0)}else{window.scrollTo(0,0);if(hashIndex>0){stop=hashIndex;cur=STOP_IDX[hashIndex]}}
+if(deepTarget){stop=LAST;cur=STOP_IDX[LAST];setTimeout(()=>deepTarget.scrollIntoView({block:'start'}),0)}else{window.scrollTo(0,0);if(hashIndex>0){stop=hashIndex;cur=STOP_IDX[hashIndex]}}
 FX.lastMove=performance.now();
 loadA.then(()=>{sceneDirty=true;wake()});loadAll.then(()=>{sceneDirty=true;wake();if(staticMode)paintStills()});
 motionPreference();
