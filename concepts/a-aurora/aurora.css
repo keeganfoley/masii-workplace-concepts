@@ -424,3 +424,19 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 @media (max-width:900px){.rm .how__inner{height:auto}}
 .is-paused *,.is-paused *::before{animation-play-state:paused!important}
 .deck__card[aria-hidden="true"]{box-shadow:0 0 0 2px #2a2a30,0 0 0 calc(var(--pw)*.02) #0c0c10,0 30px 50px -30px rgba(40,30,120,.4)}
+
+/* Quiet finish: keep the launch information readable without competing card effects. */
+.launch__bg{opacity:.2}
+.kinds{gap:24px}
+.kind{padding:16px 0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none}
+.close__m{animation:none;width:min(220px,40vw)}
+.close__h{font-size:clamp(3.2rem,8vw,7.5rem)}
+.foot{background:rgba(246,247,242,.94)}
+@media (max-width:900px){
+  .how__count{align-items:center;gap:6px;margin-bottom:4px}
+  .how__cur-wrap{font-size:1.25rem}
+  .how__of{font-size:.9rem}
+  .how__slides{min-height:5em}
+  .how__nav{gap:16px}
+  .kinds{gap:8px}
+}

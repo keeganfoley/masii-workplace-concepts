@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node chapter-layout.mjs && node scroll-regression.mjs",
+    "test": "node chapter-layout.mjs && node scroll-regression.mjs && node step-gestures.mjs",
     "perf": "node scroll-performance.mjs"
   },
   "devDependencies": { "playwright": "1.63.0" }

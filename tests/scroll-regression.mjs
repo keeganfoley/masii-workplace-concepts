@@ -7,13 +7,14 @@ for(const name of ['d-chapters','e-best']){
  await p.keyboard.press('End');await p.waitForTimeout(900);assert(await p.evaluate(()=>scrollY+innerHeight>=document.documentElement.scrollHeight-2));
  await p.keyboard.press('Home');await p.waitForTimeout(1500);assert.equal(await p.evaluate(()=>chapterDeck.getState().stop),0);
  for(let i=0;i<24;i++){await p.mouse.wheel(0,100);await p.waitForTimeout(35)}
- assert(await p.evaluate(()=>scrollY>1800));
+ assert.equal(await p.evaluate(()=>chapterDeck.getState().stop),1);
+ assert(Math.abs(await p.evaluate(()=>scrollY)-900)<3);
  await p.keyboard.press('Home');await p.waitForTimeout(1200);
  await p.locator('[data-chapter="2"]').last().click();await p.waitForTimeout(1800);assert.equal(await p.evaluate(()=>chapterDeck.getState().shown),2);
  const y=await p.evaluate(()=>scrollY);await p.waitForTimeout(1100);assert.equal(await p.evaluate(()=>scrollY),y);
  const hash=await p.locator('.chapter').nth(2).getAttribute('id');await p.goto(base+name+'/#'+hash);await p.waitForTimeout(1800);assert.equal(await p.evaluate(()=>chapterDeck.getState().stop),2);
  await p.setViewportSize({width:800,height:750});await p.waitForTimeout(1800);assert(await p.evaluate(()=>Math.abs(document.querySelector('.stage').getBoundingClientRect().top)<2));
- console.log(name,'continuous wheel, keyboard, nav, idle, deep link, resize passed');await p.close();
+ console.log(name,'one-step wheel, keyboard, nav, idle, deep link, resize passed');await p.close();
 }
 const a=await browser.newPage();await a.goto(base+'a-aurora/');await a.waitForTimeout(2300);
 for(const step of [1,0,1,2,0,2,1,0]){await a.evaluate(step=>{const s=ScrollTrigger.getAll().find(s=>s.trigger?.classList.contains('how')&&s.pin);scrollTo(0,s.start+(s.end-s.start)*[.05,.5,.95][step]);},step);await a.waitForTimeout(80)}

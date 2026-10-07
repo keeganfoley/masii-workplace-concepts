@@ -23,9 +23,9 @@
     [['violet', 'maya', 'plum', 'celadon', 'maya'], .40],    // how it works
     [['celadon', 'maya', 'plum', 'violet', 'celadon'], .42], // teams
     [['maya', 'celadon', 'maya', 'plum', 'celadon'], .32],   // compare (quieter for the table)
-    [['plum', 'celadon', 'maya', 'violet', 'plum'], .36],    // cost
-    [['celadon', 'plum', 'maya', 'violet', 'celadon'], .38], // rollout
-    [['maya', 'celadon', 'plum', 'violet', 'maj'], .58],     // close (most vivid)
+    [['plum', 'celadon', 'maya', 'violet', 'plum'], .20],    // cost
+    [['celadon', 'plum', 'maya', 'violet', 'celadon'], .16], // rollout
+    [['maya', 'celadon', 'plum', 'violet', 'maj'], .24],     // close (quiet finish)
   ].map(([cols, s]) => ({ c: cols.flatMap(k => rgb(HEX[k])), s }));
 
   const field = $('.field');
@@ -479,7 +479,7 @@ void main(){
       ScrollTrigger.create({ trigger: sec, start: 'top 55%', end: 'bottom 55%', onToggle: s => { if (s.isActive) gl.target = idx; } });
     });
 
-    /* HOW — passive scroll progress; only a segment-button click requests a glide. */
+    /* HOW — one screen per gesture, with direct segment navigation. */
     const SNAP = [0, .5, 1];
     let gliding = false, glideTimer = 0;
     const howST = ScrollTrigger.create({
@@ -487,7 +487,9 @@ void main(){
       onUpdate: s => { if (!gliding) setStep(s.progress < .25 ? 0 : s.progress < .75 ? 1 : 2); },
     });
     const yFor = i => howST.start + (howST.end - howST.start) * SNAP[i];
+    const stepScroll = window.createStepScroll({ positions: () => SNAP.map((_, i) => yFor(i)) });
     function glideTo(i, d = .7) {
+      stepScroll.cancel();
       setStep(i);                                  // the handoff starts now, not when the scroll lands
       gliding = true;
       const done = () => { gliding = false; clearTimeout(glideTimer); };
@@ -497,7 +499,7 @@ void main(){
     }
     const posY = () => (lenis ? lenis.animatedScroll : scrollY);
     const inPin = () => { const y = posY(); return y >= howST.start - 1 && y <= howST.end + 1; };
-    // Wheel, touch, scrollbar and keyboard derive the step passively from progress.
+    // Gesture glides land on these stops; the scrollbar still permits direct navigation.
     segs.forEach(s => s.addEventListener('click', () => { if (inPin()) glideTo(+s.dataset.go); else scrollToY(yFor(+s.dataset.go) + (+s.dataset.go === 0 ? 1 : 0), 1); }));
     // the whole deck leans slightly towards the pointer
     if (FINE) {

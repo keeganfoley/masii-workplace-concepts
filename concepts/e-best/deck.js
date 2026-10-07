@@ -1,7 +1,7 @@
 (()=>{'use strict';
-// MASii chapter artwork follows native document scroll position.
+// MASii chapter artwork follows the document scroll position.
 // A sticky viewport holds each chapter; the spring only animates the artwork.
-// Wheel, touch, keyboard and the scrollbar always remain browser-owned.
+// Wheel and touch advance one chapter per gesture; the scrollbar remains available.
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const root=document.documentElement,story=$('#story'),stage=$('.stage'),canvas=$('#film'),sections=$$('.chapter'),bar=$('.journey-bar'),cue=$('.scroll-cue'),cueText=$('.cue-text'),navLinks=$$('.chapter-nav a'),tip=$('.stip');
 const slot=$('#phSlot'),phones=$$('.ph',slot),phSteps=$('.ph-steps'),phCount=$('.ph-count b'),phLabel=$('.ph-label'),phBars=$$('.ph-steps i');
@@ -312,7 +312,9 @@ function setStop(i){
   if(staticMode){sections[i].scrollIntoView({block:'start'});return;}
   window.scrollTo({top:storyTop()+i*viewH,behavior:'smooth'});
 }
-// Scrolling is browser-owned; there are no cancelling wheel/touch/key handlers.
+if (!staticMode) window.createStepScroll({
+  positions: () => STOPS.map((_, i) => storyTop() + i * viewH)
+});
 function toCanvas(e){const r=stage.getBoundingClientRect(),s=canvas.width/Math.max(1,r.width);return[(e.clientX-r.left)*s,(e.clientY-r.top)*s]}
 const onScene=e=>!!(e.target.closest&&e.target.closest('.stage'))&&!e.target.closest('.ph,.ph-steps,button,a');
 addEventListener('pointermove',e=>{if(staticMode||e.pointerType==='touch')return;const inStage=!!(e.target.closest&&e.target.closest('.stage,.chapter'))&&stageVisible();[FX.px,FX.py]=toCanvas(e);FX.inside=inStage;FX.lastMove=performance.now();wake()},{passive:true});
