@@ -1,17 +1,7 @@
 (()=>{'use strict';
-// MASii Workplace — Concept D "Chapter Deck".
-// Same engine family as the Stacked Capital / New Leaf swipe decks: one swipe, flick, arrow key or
-// page key = glide to the next chapter stop on a critically damped spring and land on a sharp hold.
-// Hard and soft flicks are identical; deliberate extra swipes stack. Chapter copy leaves as the glide
-// starts and arrives when ARRIVE of the segment remains. After the last chapter the page releases
-// into normal scrolling (editorial below the fold) and parks the film on its finale.
-//
-// THE FILM: there is no frame sequence yet, so the "film" is rendered live by drawScene(cur), a
-// stand-in camera move through the brand's 3D objects. `cur` lives in a virtual frame space
-// (STOPS below), exactly like stacked-scroll.js. To swap in a Higgsfield sequence later, replace
-// drawScene(cur) with the frame-store + draw() pair from stacked-scroll.js (FRAMES built from the
-// real STOPS, bitmaps ring, holds) — the spring, gestures, ARRIVE timing and chapter UI stay as-is.
-// The hover layer (FX) only needs hit targets; a frame sequence could supply them per chapter stop.
+// MASii chapter artwork follows native document scroll position.
+// A sticky viewport holds each chapter; the spring only animates the artwork.
+// Wheel, touch, keyboard and the scrollbar always remain browser-owned.
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const root=document.documentElement,stage=$('.stage'),canvas=$('#film'),sections=$$('.chapter'),bar=$('.journey-bar'),cue=$('.scroll-cue'),cueText=$('.cue-text'),navLinks=$$('.chapter-nav a'),tip=$('.tip');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)'),narrowMQ=matchMedia('(max-width:800px)');
@@ -21,7 +11,7 @@ const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),smooth=(a,b,v)=>{const t=clam
 
 // ---- Timeline (virtual frames; a real sequence would supply its own STOPS) ------------------------
 const SEG=96,STOPS=[0,SEG,SEG*2,SEG*3,SEG*4],STOP_IDX=STOPS,LAST=STOPS.length-1;
-const OMEGA=PHONE?3.7:3.8;// spring stiffness, as in the reference decks
+const OMEGA=8;// faster settling without overshoot
 const ARRIVE=.36;// incoming copy appears when this fraction of the segment remains
 
 // ---- Sprites: fetched, then decoded off the main thread with createImageBitmap --------------------
@@ -186,12 +176,24 @@ function makeRenderer(cv,fx=null){
 
 // ---- Deck state ----------------------------------------------------------------------------------
 const film=makeRenderer(canvas,FX);
-let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight,lastWheel=0,strokeSum=0,strokeArmed=false,touchY=null,touchConsumed=false;
+let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight;
 let quality=1,glideDeltas=[],wasSettled=true;// adaptive resolution: lowered (at rest) only if glides miss frames
 const metrics={draws:0,drawMs:[],ticks:0};
 const settled=()=>Math.abs(STOP_IDX[stop]-cur)<.25&&Math.abs(vel)<.8;
 const landing=()=>Math.abs(STOP_IDX[stop]-cur)<3;// close enough to the hold for hover and taps
-const stageVisible=()=>scrollY<viewH*1.02;
+// A native scroll runway keeps wheel, touch, keyboard and scrollbar in sync.
+const story=$('#story');
+const frame=document.createElement('div');frame.className='story-frame';
+if(!staticMode){while(story.firstChild)frame.appendChild(story.firstChild);story.appendChild(frame);story.style.height=`${(LAST+1)*100}svh`;}
+const storyTop=()=>story.getBoundingClientRect().top+scrollY;
+const storyOffset=()=>Math.max(0,scrollY-storyTop());
+const stageVisible=()=>storyOffset()<(LAST+1)*viewH;
+function syncScroll(){
+  if(staticMode)return;
+  const next=clamp(Math.floor(storyOffset()/Math.max(1,viewH)+.35),0,LAST);
+  if(next!==stop){stop=next;FX.tapId=null;sceneDirty=true;}
+  wake();
+}
 
 function present(chapter){if(chapter===shown)return;shown=chapter;sections.forEach((el,i)=>{const on=i===chapter;el.classList.toggle('on',on);el.inert=!on;el.setAttribute('aria-hidden',String(!on))})}
 // UI writes are guarded so a glide frame touches the DOM only when something actually changes.
@@ -202,9 +204,9 @@ function paintUI(){
   present(remaining<=seg*ARRIVE||settled()?stop:-1);
   if(navAt!==stop){navAt=stop;navLinks.forEach((a,i)=>{if(i===stop)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')})}
   setUI('prog',(cur/STOPS[LAST]).toFixed(3),v=>bar.style.setProperty('--progress',v));// scoped to the bar: no document-wide style recalc
-  const overflow=Math.max(0,scrollY);setUI('barO',(1-clamp(overflow/(viewH*.5))).toFixed(2),v=>bar.style.opacity=v);setUI('barP',overflow>viewH*.25,v=>bar.style.pointerEvents=v?'none':'');setUI('scr',overflow>40,v=>document.body.classList.toggle('scrolled',v));
+  const overflow=Math.max(0,storyOffset()-LAST*viewH);setUI('barO',(1-clamp(overflow/(viewH*.5))).toFixed(2),v=>bar.style.opacity=v);setUI('barP',overflow>viewH*.25,v=>bar.style.pointerEvents=v?'none':'');setUI('scr',overflow>40,v=>document.body.classList.toggle('scrolled',v));
   const rel=stop===LAST&&settled();setUI('rel',rel&&overflow<2,v=>cue.classList.toggle('release',v));setUI('cue',rel,v=>cueText.textContent=v?'Scroll to continue':'Scroll for next');
-  setUI('ta',!staticMode&&scrollY<=2&&!rel,v=>stage.style.touchAction=v?'pinch-zoom':'auto')}
+  setUI('ta','auto',v=>stage.style.touchAction=v)}
 
 // ---- Interaction update (runs inside tick) --------------------------------------------------------
 const dprNow=()=>canvas.width/Math.max(1,stage.clientWidth);
@@ -247,7 +249,7 @@ function activate(h){const o=fxObj(h.id);
 // The glide into the finale runs on a stiffer spring so the tableau settles sooner (as in stacked-scroll.js).
 function tick(t){raf=0;if(document.hidden||staticMode)return;const dt=Math.min(.05,lastTime?(t-lastTime)/1000:.0167);if(lastTime&&!settled())glideDeltas.push(t-lastTime);lastTime=t;metrics.ticks++;
   const tgt=STOP_IDX[stop];
-  if(!settled()){const om=stop===LAST&&cur<tgt?OMEGA*1.25:OMEGA;vel+=(om*om*(tgt-cur)-2*om*vel)*dt;cur+=vel*dt;if(Math.abs(tgt-cur)<.25&&Math.abs(vel)<.8){cur=tgt;vel=0}}
+  if(!settled()){const om=stop===LAST&&cur<tgt?OMEGA*1.25:OMEGA;const displacement=cur-tgt, impulse=vel+om*displacement, decay=Math.exp(-om*dt);cur=tgt+(displacement+impulse*dt)*decay;vel=(vel-om*impulse*dt)*decay;if(Math.abs(tgt-cur)<.25&&Math.abs(vel)<.8){cur=tgt;vel=0}}
   const now=performance.now();
   paintUI();
   const fxMoving=assetsReady?updateFX(dt,now):false;
@@ -264,42 +266,14 @@ function measure(){const b=stage.getBoundingClientRect(),w=Math.round(b.width),h
   lastW=w;lastH=h;const dpr=Math.min(devicePixelRatio||1,PHONE?1.25:2)*quality;film.resize(Math.round(w*dpr),Math.round(h*dpr));sceneDirty=true;wake()}
 
 // ---- Gestures ------------------------------------------------------------------------------------
-function setStop(i){i=clamp(i,0,LAST);if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(i===stop&&settled())return;stop=i;FX.tapId=null;wake()}
-function step(dir){setStop(stop+dir)}
-function blockedInput(e){return staticMode||!!(e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]'))}
-// Fresh swipe = a lull since the last wheel event with real magnitude, or a spike during the previous flick's inertia tail.
-// Ownership is latched at gesture start; a page gesture cannot re-enter the deck.
-let wheelOwner=false;
-addEventListener('wheel',e=>{
-  if(blockedInput(e)||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
-  const dir=Math.sign(e.deltaY);if(!dir)return;
-  const now=e.timeStamp||performance.now(),fresh=!lastWheel||now-lastWheel>220;
-  lastWheel=now;
-  if(fresh){wheelOwner=scrollY<=2&&!(stop===LAST&&dir>0&&settled());strokeSum=0;strokeArmed=wheelOwner}
-  if(scrollY>2){wheelOwner=false;strokeArmed=false}
-  if(!wheelOwner)return;
-  e.preventDefault();e.__deck=true;
-  strokeSum+=Math.abs(e.deltaY);
-  if(strokeArmed&&strokeSum>6){strokeArmed=false;step(dir)}
-},{passive:false});
-function clearTouch(){touchY=null;touchConsumed=false}
-addEventListener('touchstart',e=>{clearTouch();if(blockedInput(e)||e.touches.length!==1||scrollY>2)return;touchY=e.touches[0].clientY},{passive:true});
-addEventListener('touchmove',e=>{
-  if(e.touches.length!==1||blockedInput(e)||scrollY>2){clearTouch();return}
-  if(touchConsumed){if(e.cancelable)e.preventDefault();return}
-  if(touchY===null)return;
-  const d=touchY-e.touches[0].clientY,dir=Math.sign(d);if(!dir)return;
-  if(stop===LAST&&dir>0&&settled()){clearTouch();return}
-  if(e.cancelable)e.preventDefault();
-  if(Math.abs(d)>46){touchConsumed=true;touchY=null;step(dir)}
-},{passive:false});
-addEventListener('touchend',clearTouch,{passive:true});addEventListener('touchcancel',clearTouch,{passive:true});
-addEventListener('keydown',e=>{if(e.repeat||blockedInput(e)||e.altKey||e.metaKey||e.ctrlKey||(e.key===' '&&e.target.closest('button,a')))return;if(scrollY>2)return;
-  if(e.key==='Home'||e.key==='End'){e.preventDefault();setStop(e.key==='Home'?0:LAST);return}
-  const dir={ArrowDown:1,PageDown:1,' ':e.shiftKey?-1:1,ArrowUp:-1,PageUp:-1}[e.key];if(!dir)return;if(stop===LAST&&dir>0&&settled())return;e.preventDefault();if(!e.repeat)step(dir)});
-// Pointer: hover on mouse/pen; a tap (short, still press) on any pointer triggers the same reaction as a click.
+function setStop(i){
+  i=clamp(i,0,LAST);
+  if(staticMode){sections[i].scrollIntoView({block:'start'});return;}
+  window.scrollTo({top:storyTop()+i*viewH,behavior:'smooth'});
+}
+// Scrolling is browser-owned; there are no cancelling wheel/touch/key handlers.
 function toCanvas(e){const r=stage.getBoundingClientRect(),s=dprNow();return[(e.clientX-r.left)*s,(e.clientY-r.top)*s]}
-addEventListener('pointermove',e=>{if(staticMode)return;const inStage=!!(e.target.closest&&e.target.closest('.stage'))&&scrollY<viewH*.5;if(e.pointerType==='touch'){return}[FX.px,FX.py]=toCanvas(e);FX.inside=inStage;FX.lastMove=performance.now();wake()},{passive:true});
+addEventListener('pointermove',e=>{if(staticMode)return;const inStage=!!(e.target.closest&&e.target.closest('.stage'))&&stageVisible();if(e.pointerType==='touch'){return}[FX.px,FX.py]=toCanvas(e);FX.inside=inStage;FX.lastMove=performance.now();wake()},{passive:true});
 document.documentElement.addEventListener('pointerleave',()=>{FX.inside=false;wake()});
 let down=null;
 addEventListener('pointerdown',e=>{if(staticMode||!(e.target.closest&&e.target.closest('.stage')))return;down={x:e.clientX,y:e.clientY,t:performance.now(),type:e.pointerType}},{passive:true});
@@ -307,11 +281,10 @@ addEventListener('pointerup',e=>{if(!down)return;const d=down;down=null;if(Math.
   const [x,y]=toCanvas(e);const h=hitAt(x,y);if(!h)return;if(d.type==='touch'){FX.px=x;FX.py=y;FX.tapId=h.id;FX.tapUntil=performance.now()+1600}FX.lastMove=performance.now();activate(h)},{passive:true});
 addEventListener('pointercancel',()=>{down=null},{passive:true});
 
-function park(){if(stop!==LAST||!settled()){stop=LAST;cur=STOP_IDX[LAST];vel=0}}
-addEventListener('scroll',()=>{if(staticMode)return;if(scrollY>8)FX.inside=false;paintUI();wake()},{passive:true});
+addEventListener('scroll',()=>{if(staticMode)return;FX.inside=false;syncScroll();paintUI()},{passive:true});
 // In-page links below the deck: park the film on its finale, then glide the page there.
-$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();if(!staticMode)park();wake();t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
-$$('[data-chapter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.chapter;if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(scrollY>0)window.scrollTo(0,0);setStop(i)}));
+$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();wake();t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
+$$('[data-chapter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.chapter;if(staticMode){sections[i].scrollIntoView({block:'start'});return}setStop(i)}));
 
 // ---- Editorial reveals + calculation tooltips ----------------------------------------------------------
 const io='IntersectionObserver'in window?new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target)}}),{rootMargin:'0px 0px -8% 0px',threshold:.12}):null;
@@ -326,8 +299,8 @@ function motionPreference(){staticMode=reduce.matches;document.body.classList.to
   if(staticMode){if(raf){cancelAnimationFrame(raf);raf=0}sections.forEach(el=>{el.inert=false;el.removeAttribute('aria-hidden');el.classList.add('on')});loadAll.then(paintStills)}
   else{shown=-2;measure();paintUI();wake()}}
 if('ResizeObserver'in window)new ResizeObserver(()=>{if(!staticMode)measure()}).observe(stage);
-addEventListener('resize',()=>{if(staticMode)paintStills();else measure()});
-reduce.addEventListener('change',motionPreference);
+addEventListener('resize',()=>{if(staticMode)paintStills();else {measure();syncScroll();}});
+reduce.addEventListener('change',()=>location.reload());
 document.addEventListener('visibilitychange',()=>{lastTime=0;if(!document.hidden)wake()});
 if('scrollRestoration'in history)history.scrollRestoration='manual';
 const hashIndex=sections.findIndex(s=>'#'+s.id===location.hash);
@@ -336,6 +309,7 @@ if(deepTarget){stop=LAST;cur=STOP_IDX[LAST];setTimeout(()=>deepTarget.scrollInto
 FX.lastMove=performance.now();
 loadA.then(()=>{sceneDirty=true;wake()});loadAll.then(()=>{sceneDirty=true;wake();if(staticMode)paintStills()});
 motionPreference();
+if(hashIndex>0){if(staticMode)sections[hashIndex].scrollIntoView({block:'start'});else window.scrollTo(0,storyTop()+hashIndex*viewH);}
 // Read-only diagnostics for preview verification.
 window.chapterDeck={getState:()=>{const a=[...metrics.drawMs].sort((x,y)=>x-y);return{cur,vel,stop,shown,settled:settled(),phone:PHONE,reduced:staticMode,assetsReady,quality,canvas:[canvas.width,canvas.height],looping:!!raf,draws:metrics.draws,ticks:metrics.ticks,drawP95:a.length?+a[Math.floor(a.length*.95)].toFixed(2):0,hover:FX.hover&&FX.hover.id,hits:FX.hits.map(h=>({id:h.id,x:Math.round(h.x/dprNow()),y:Math.round(h.y/dprNow())}))}},go:i=>setStop(i)};
 })();

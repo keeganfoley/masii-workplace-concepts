@@ -271,8 +271,8 @@ const cardTop = i => absTop(marks[i]) + marks[i].offsetHeight;
 
 let lenis = null;
 if (window.Lenis) {
-  // Wheel events the deck consumed (chapter glides) carry e.__deck and are never smoothed by Lenis.
-  lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: !matchMedia('(any-pointer: coarse)').matches, syncTouch: false, virtualScroll: d => !(d.event && d.event.__deck) });
+  // Native wheel/touch scrolling; Lenis is used for explicit anchor glides only.
+  lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: false, syncTouch: false });
   window.__lenis = lenis;
   lenis.on('scroll', ScrollTrigger.update);
   ScrollTrigger.addEventListener('refresh', () => { lenis.resize(); if (!lenis.isScrolling && Math.abs(lenis.animatedScroll - window.scrollY) > 1) lenis.scrollTo(window.scrollY, { immediate: true, force: true }); });

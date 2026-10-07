@@ -503,3 +503,8 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.18)}
   .scale .beam{transform:none}
   .concept-tag{transition:none}
 }
+
+/* Native chapter runway: the browser owns scrolling on every input device. */
+body:not(.static-mode) #story{overflow:visible}
+.story-frame{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate}
+.story-frame .stage{position:absolute;inset:0;height:100%;width:100%}

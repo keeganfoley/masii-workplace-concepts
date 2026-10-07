@@ -150,7 +150,7 @@ void main(){
      3. HOW IT WORKS — card-deck handoff
      ============================================================ */
   const cards = $$('.deck__card'), slides = $$('.how__slide'), segs = $$('.how__seg'), cur = $('.how__cur');
-  let curStep = -1;
+  let curStep = -1, counterTween = null;
   const POSE = d => d < 0
     ? { xPercent: -70, yPercent: 6, rotationY: 38, rotationZ: -12, z: -60, scale: .92, autoAlpha: 0 }      // tossed off to the left
     : d === 0
@@ -174,9 +174,19 @@ void main(){
     if (i === curStep) return;
     const dir = i > curStep ? 1 : -1, prev = curStep; curStep = i;
     segs.forEach((s, k) => { s.classList.toggle('is-on', k === i); s.classList.toggle('is-done', k <= i); s.setAttribute('aria-selected', k === i); });
+    // Cancel the previous handoff before a fast reverse can finish hiding this slide.
+    if (MOTION) {
+      counterTween?.kill();
+      gsap.killTweensOf(cur);
+      gsap.set(cur, { yPercent: 0 });
+      slides.forEach(s => {
+        gsap.killTweensOf([s, ...s.querySelectorAll('.w>span, p')]);
+        gsap.set(s, { clearProps: 'opacity,transform' });
+      });
+    }
     // counter roll
     if (MOTION && !instant) {
-      gsap.timeline().to(cur, { yPercent: -110 * dir, duration: .22, ease: 'power2.in' })
+      counterTween = gsap.timeline().to(cur, { yPercent: -110 * dir, duration: .22, ease: 'power2.in' })
         .add(() => { cur.textContent = i + 1; }).fromTo(cur, { yPercent: 110 * dir }, { yPercent: 0, duration: .5, ease: 'back.out(2)' });
     } else cur.textContent = i + 1;
     // copy swaps with the phone
@@ -189,7 +199,7 @@ void main(){
           gsap.fromTo($('p', s), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .8, delay: .38, ease: 'expo.out' });
         }
       } else if (k === prev && MOTION && !instant) {
-        gsap.to(s, { opacity: 0, y: -18 * dir, duration: .24, ease: 'power2.in', onComplete: () => { s.classList.remove('is-on'); gsap.set(s, { clearProps: 'opacity,transform' }); } });
+        gsap.to(s, { opacity: 0, y: -18 * dir, duration: .24, ease: 'power2.in', onComplete: () => { if (k === curStep) return; s.classList.remove('is-on'); gsap.set(s, { clearProps: 'opacity,transform' }); } });
       } else s.classList.remove('is-on');
     });
     // the deck: front card is tossed out / brought back, the next one springs forward
@@ -406,8 +416,8 @@ void main(){
   });
   addEventListener('load', safeRefresh, { once: true });
   let lenis = null;
-  if (window.Lenis) {
-    lenis = new Lenis({ lerp: .1, smoothWheel: !matchMedia('(any-pointer: coarse)').matches, syncTouch: false });
+  if (window.Lenis && FINE) {
+    lenis = new Lenis({ lerp: .1, smoothWheel: false, syncTouch: false });
     window.__lenis = lenis;
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
@@ -553,7 +563,7 @@ void main(){
     const items = $$('.rstep');
     ScrollTrigger.create({
       trigger: wrap, start: 'top 65%', end: 'bottom 65%',
-      onRefresh: () => { geo = make(); },
+      onRefresh: s => { geo = make(); if (geo) geo.draw.style.strokeDashoffset = geo.len * (1 - s.progress); },
       onUpdate: s => {
         if (!geo) return;
         geo.draw.style.strokeDashoffset = geo.len * (1 - s.progress);

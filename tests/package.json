@@ -1,0 +1,10 @@
+{
+  "name": "masii-scroll-regressions",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node chapter-layout.mjs && node scroll-regression.mjs",
+    "perf": "node scroll-performance.mjs"
+  },
+  "devDependencies": { "playwright": "1.63.0" }
+}

@@ -140,8 +140,14 @@
     });
     panel.setAttribute('aria-labelledby', tabs[i].id);
     moveInd();
-    if (focus) tabs[i].focus();
-    tabs[i].scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    if (focus) tabs[i].focus({ preventScroll: true });
+    const tablist = tabs[i].closest('[role=tablist]');
+    if (tablist.scrollWidth > tablist.clientWidth) {
+      const tabRect = tabs[i].getBoundingClientRect(), listRect = tablist.getBoundingClientRect();
+      const delta = tabRect.left < listRect.left ? tabRect.left - listRect.left
+        : tabRect.right > listRect.right ? tabRect.right - listRect.right : 0;
+      tablist.scrollBy({ left: delta, behavior: reduce ? 'auto' : 'smooth' });
+    }
     clearTimeout(swapTimer);
     if (reduce) { fill(i); return; }
     inner.classList.add('is-out');

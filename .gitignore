@@ -4,3 +4,5 @@ shared/BRIEF.md
 shared/CONTENT.md
 shared/ISSUES.md
 .DS_Store
+
+node_modules/

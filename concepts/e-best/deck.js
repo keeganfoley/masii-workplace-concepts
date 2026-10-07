@@ -1,14 +1,7 @@
 (()=>{'use strict';
-// MASii Workplace — Concept E "Best of": the hero deck.
-// Engine: Concept D's chapter deck (critically damped spring between chapter stops, one gesture =
-// one chapter, copy lands at ARRIVE, live canvas scene via drawScene(cur), hover/tap hit-testing,
-// prebaked blur sprites, idle loop stop). Additions for E:
-//  · Chapter 1 opens with Concept B's four-layer M, drawn here as four clipped slices of the same
-//    chrome sprite, so the assembled mark IS the chrome M (no crossfade, no seam). The slices fan
-//    apart in depth under the cursor, bounce apart on click, and spread as the deck leaves chapter 1.
-//  · "How it works" lives inside the deck: one phone per step, handed off like a card deck as the
-//    spring glides (the incoming phone slides up over the outgoing one with a slight 3D tilt).
-//  · Wheel events the deck consumes are flagged (e.__deck) so Lenis, created later, ignores them.
+// MASii chapter artwork follows native document scroll position.
+// A sticky viewport holds each chapter; the spring only animates the artwork.
+// Wheel, touch, keyboard and the scrollbar always remain browser-owned.
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const root=document.documentElement,story=$('#story'),stage=$('.stage'),canvas=$('#film'),sections=$$('.chapter'),bar=$('.journey-bar'),cue=$('.scroll-cue'),cueText=$('.cue-text'),navLinks=$$('.chapter-nav a'),tip=$('.stip');
 const slot=$('#phSlot'),phones=$$('.ph',slot),phSteps=$('.ph-steps'),phCount=$('.ph-count b'),phLabel=$('.ph-label'),phBars=$$('.ph-steps i');
@@ -18,7 +11,7 @@ const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),smooth=(a,b,v)=>{const t=clam
 
 // ---- Timeline ------------------------------------------------------------------------------------
 const SEG=96,STOPS=[0,SEG,SEG*2,SEG*3],LAST=STOPS.length-1,TMAX=LAST;
-const OMEGA=PHONE?3.7:3.8,ARRIVE=.36;
+const OMEGA=8,ARRIVE=.36;
 const STEP_LABEL=['','Choose a cause','Build good habits','Feel rewarded'];
 
 // ---- Sprites ---------------------------------------------------------------------------------------
@@ -204,12 +197,23 @@ const slotGeo=()=>({cx:slot.offsetLeft+slot.offsetWidth/2,cy:slot.offsetTop+slot
 
 // ---- Deck state ------------------------------------------------------------------------------------
 const film=makeRenderer(canvas,FX,slotGeo);
-let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight,lastWheel=0,strokeSum=0,strokeArmed=false,touchY=null,touchConsumed=false;
+let cur=0,vel=0,stop=0,shown=-2,navAt=-1,lastTime=0,raf=0,staticMode=reduce.matches,viewH=innerHeight;
 let quality=1,glideDeltas=[],wasSettled=true;
 const metrics={draws:0,drawMs:[],ticks:0};
 const settled=()=>Math.abs(STOPS[stop]-cur)<.25&&Math.abs(vel)<.8;
 const landing=()=>Math.abs(STOPS[stop]-cur)<3;
-const stageVisible=()=>scrollY<viewH*1.02;
+// A native scroll runway keeps wheel, touch, keyboard and scrollbar in sync.
+const frame=document.createElement('div');frame.className='story-frame';
+if(!staticMode){while(story.firstChild)frame.appendChild(story.firstChild);story.appendChild(frame);story.style.height=`${(LAST+1)*100}svh`;}
+const storyTop=()=>story.getBoundingClientRect().top+scrollY;
+const storyOffset=()=>Math.max(0,scrollY-storyTop());
+const stageVisible=()=>storyOffset()<(LAST+1)*viewH;
+function syncScroll(){
+  if(staticMode)return;
+  const next=clamp(Math.floor(storyOffset()/Math.max(1,viewH)+.35),0,LAST);
+  if(next!==stop){stop=next;FX.tapId=null;sceneDirty=true;}
+  wake();
+}
 const counted=new Set();
 function countUp(el,dur=1500){const to=parseFloat(el.dataset.count),dec=+el.dataset.dec||0,f=v=>v.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});if(staticMode){el.textContent=f(to);return}const t0=performance.now();const st=t=>{const q=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-q,3);el.textContent=f(to*e);if(q<1)requestAnimationFrame(st)};el.textContent=f(0);requestAnimationFrame(st)}
 function present(chapter){if(chapter===shown)return;shown=chapter;sections.forEach((el,i)=>{const on=i===chapter;el.classList.toggle('on',on);el.inert=!on;el.setAttribute('aria-hidden',String(!on))});
@@ -221,9 +225,9 @@ function paintUI(){
   present(!introGate()?-1:remaining<=seg*ARRIVE||settled()?stop:-1);
   if(navAt!==stop){navAt=stop;navLinks.forEach((a,i)=>{if(i===stop)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')})}
   setUI('prog',(cur/STOPS[LAST]).toFixed(3),v=>bar.style.setProperty('--progress',v));
-  const overflow=Math.max(0,scrollY);setUI('barO',(1-clamp(overflow/(viewH*.35))).toFixed(2),v=>bar.style.opacity=v);setUI('barP',overflow>viewH*.2,v=>bar.style.pointerEvents=v?'none':'');
+  const overflow=Math.max(0,storyOffset()-LAST*viewH);setUI('barO',(1-clamp(overflow/(viewH*.35))).toFixed(2),v=>bar.style.opacity=v);setUI('barP',overflow>viewH*.2,v=>bar.style.pointerEvents=v?'none':'');
   const rel=stop===LAST&&settled();setUI('rel',rel&&overflow<2,v=>cue.classList.toggle('release',v));setUI('cue',rel,v=>cueText.textContent=v?'Scroll to continue':'Scroll for next');
-  setUI('ta',!staticMode&&scrollY<=2&&!rel,v=>stage.style.touchAction=v?'pinch-zoom':'auto');
+  setUI('ta','auto',v=>stage.style.touchAction=v);
   paintPhones()}
 
 // ---- Phones: card-deck handoff, driven by the same spring as the film -----------------------------
@@ -285,7 +289,7 @@ function activate(h){const o=fxObj(h.id);
 
 function tick(t){raf=0;if(document.hidden||staticMode)return;const dt=Math.min(.05,lastTime?(t-lastTime)/1000:.0167);if(lastTime&&!settled())glideDeltas.push(t-lastTime);lastTime=t;metrics.ticks++;
   const tgt=STOPS[stop];
-  if(!settled()){const om=stop===LAST&&cur<tgt?OMEGA*1.25:OMEGA;vel+=(om*om*(tgt-cur)-2*om*vel)*dt;cur+=vel*dt;if(Math.abs(tgt-cur)<.25&&Math.abs(vel)<.8){cur=tgt;vel=0}}
+  if(!settled()){const om=stop===LAST&&cur<tgt?OMEGA*1.25:OMEGA;const displacement=cur-tgt, impulse=vel+om*displacement, decay=Math.exp(-om*dt);cur=tgt+(displacement+impulse*dt)*decay;vel=(vel-om*impulse*dt)*decay;if(Math.abs(tgt-cur)<.25&&Math.abs(vel)<.8){cur=tgt;vel=0}}
   const now=performance.now();
   if(assetsReady&&!intro.t0&&!intro.done)intro.t0=now;
   const introLive=!intro.done&&intro.t0&&(now-intro.t0)/1000<intro.DUR+3*intro.EACH+.1;if(intro.t0&&!introLive&&!intro.done){intro.done=true;stage.classList.add('assembled')}
@@ -303,44 +307,15 @@ function measure(){const w=stage.offsetWidth,h=stage.offsetHeight;viewH=h||inner
   const s=canvas.width/Math.max(1,w);phRect=[slot.offsetLeft*s,slot.offsetTop*s,(slot.offsetLeft+slot.offsetWidth)*s,(slot.offsetTop+slot.offsetHeight)*s];sceneDirty=true;wake()}
 
 // ---- Gestures --------------------------------------------------------------------------------------
-function setStop(i){i=clamp(i,0,LAST);if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(i===stop&&settled())return;stop=i;FX.tapId=null;wake()}
-function step(dir){setStop(stop+dir)}
-function blockedInput(e){return staticMode||!!(e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]'))}
-// Registered before Lenis: events the deck consumes carry e.__deck so Lenis skips them. Wheel timing is
-// tracked even for events that pass through, so the inertia tail of a scroll back to the top never
-// counts as a fresh swipe and never kicks the deck back a chapter by accident.
-// Ownership is latched at gesture start; a page gesture cannot re-enter the deck.
-let wheelOwner=false;
-addEventListener('wheel',e=>{
-  if(blockedInput(e)||e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
-  const dir=Math.sign(e.deltaY);if(!dir)return;
-  const now=e.timeStamp||performance.now(),fresh=!lastWheel||now-lastWheel>220;
-  lastWheel=now;
-  if(fresh){wheelOwner=scrollY<=2&&!(stop===LAST&&dir>0&&settled());strokeSum=0;strokeArmed=wheelOwner}
-  if(scrollY>2){wheelOwner=false;strokeArmed=false}
-  if(!wheelOwner)return;
-  e.preventDefault();e.__deck=true;
-  strokeSum+=Math.abs(e.deltaY);
-  if(strokeArmed&&strokeSum>6){strokeArmed=false;step(dir)}
-},{passive:false});
-function clearTouch(){touchY=null;touchConsumed=false}
-addEventListener('touchstart',e=>{clearTouch();if(blockedInput(e)||e.touches.length!==1||scrollY>2)return;touchY=e.touches[0].clientY},{passive:true});
-addEventListener('touchmove',e=>{
-  if(e.touches.length!==1||blockedInput(e)||scrollY>2){clearTouch();return}
-  if(touchConsumed){if(e.cancelable)e.preventDefault();return}
-  if(touchY===null)return;
-  const d=touchY-e.touches[0].clientY,dir=Math.sign(d);if(!dir)return;
-  if(stop===LAST&&dir>0&&settled()){clearTouch();return}
-  if(e.cancelable)e.preventDefault();
-  if(Math.abs(d)>46){touchConsumed=true;touchY=null;step(dir)}
-},{passive:false});
-addEventListener('touchend',clearTouch,{passive:true});addEventListener('touchcancel',clearTouch,{passive:true});
-addEventListener('keydown',e=>{if(e.repeat||blockedInput(e)||e.altKey||e.metaKey||e.ctrlKey||(e.key===' '&&e.target.closest('button,a')))return;if(scrollY>2)return;
-  if(e.key==='Home'||e.key==='End'){e.preventDefault();setStop(e.key==='Home'?0:LAST);return}
-  const dir={ArrowDown:1,PageDown:1,' ':e.shiftKey?-1:1,ArrowUp:-1,PageUp:-1}[e.key];if(!dir)return;if(stop===LAST&&dir>0&&settled())return;e.preventDefault();if(!e.repeat)step(dir)});
+function setStop(i){
+  i=clamp(i,0,LAST);
+  if(staticMode){sections[i].scrollIntoView({block:'start'});return;}
+  window.scrollTo({top:storyTop()+i*viewH,behavior:'smooth'});
+}
+// Scrolling is browser-owned; there are no cancelling wheel/touch/key handlers.
 function toCanvas(e){const r=stage.getBoundingClientRect(),s=canvas.width/Math.max(1,r.width);return[(e.clientX-r.left)*s,(e.clientY-r.top)*s]}
 const onScene=e=>!!(e.target.closest&&e.target.closest('.stage'))&&!e.target.closest('.ph,.ph-steps,button,a');
-addEventListener('pointermove',e=>{if(staticMode||e.pointerType==='touch')return;const inStage=!!(e.target.closest&&e.target.closest('.stage,.chapter'))&&scrollY<viewH*.5;[FX.px,FX.py]=toCanvas(e);FX.inside=inStage;FX.lastMove=performance.now();wake()},{passive:true});
+addEventListener('pointermove',e=>{if(staticMode||e.pointerType==='touch')return;const inStage=!!(e.target.closest&&e.target.closest('.stage,.chapter'))&&stageVisible();[FX.px,FX.py]=toCanvas(e);FX.inside=inStage;FX.lastMove=performance.now();wake()},{passive:true});
 document.documentElement.addEventListener('pointerleave',()=>{FX.inside=false;wake()});
 let down=null;
 addEventListener('pointerdown',e=>{if(staticMode||!onScene(e))return;down={x:e.clientX,y:e.clientY,t:performance.now(),type:e.pointerType}},{passive:true});
@@ -348,11 +323,10 @@ addEventListener('pointerup',e=>{if(!down)return;const d=down;down=null;if(Math.
   const [x,y]=toCanvas(e);const h=hitAt(x,y);if(!h)return;if(d.type==='touch'){FX.px=x;FX.py=y;FX.tapId=h.id;FX.tapUntil=performance.now()+1600}FX.lastMove=performance.now();activate(h)},{passive:true});
 addEventListener('pointercancel',()=>{down=null},{passive:true});
 
-function park(){if(stop!==LAST||!settled()){stop=LAST;cur=STOPS[LAST];vel=0}}
-addEventListener('scroll',()=>{if(staticMode)return;if(scrollY>8)FX.inside=false;paintUI();wake()},{passive:true});
+addEventListener('scroll',()=>{if(staticMode)return;FX.inside=false;syncScroll();paintUI()},{passive:true});
 const API={scrollTo:null};
-$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();if(!staticMode)park();wake();if(API.scrollTo)API.scrollTo(t);else t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
-$$('[data-chapter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.chapter;if(staticMode){sections[i].scrollIntoView({block:'start'});return}if(scrollY>0)window.scrollTo(0,0);setStop(i)}));
+$$('a[href^="#"]:not([data-chapter])').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(!t||t.closest('.chapter'))return;e.preventDefault();wake();if(API.scrollTo)API.scrollTo(t);else t.scrollIntoView({behavior:staticMode?'instant':'smooth',block:'start'})}));
+$$('[data-chapter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const i=+a.dataset.chapter;if(staticMode){sections[i].scrollIntoView({block:'start'});return}setStop(i)}));
 
 // ---- Phone app interactions (each one also answers in the scene) ----------------------------------
 function phoneBurst(opt){const r=slot.getBoundingClientRect(),s=dprNow();burst((r.left+r.width/2)*s,(r.top+r.height*.62)*s,opt.n||16,opt);FX.lastMove=performance.now();wake()}
@@ -393,7 +367,7 @@ function motionPreference(){staticMode=reduce.matches;document.body.classList.to
     sections.forEach(s=>s.querySelectorAll('[data-count]').forEach(el=>countUp(el)));loadAll.then(paintStills)}
   else{shown=-2;measure();paintUI();wake()}}
 if('ResizeObserver'in window)new ResizeObserver(()=>{if(!staticMode)measure()}).observe(stage);
-addEventListener('resize',()=>{splitChapters();if(staticMode)paintStills();else measure()});
+addEventListener('resize',()=>{splitChapters();if(staticMode)paintStills();else {measure();syncScroll();}});
 reduce.addEventListener('change',()=>location.reload());
 document.addEventListener('visibilitychange',()=>{lastTime=0;if(!document.hidden)wake()});
 if('scrollRestoration'in history)history.scrollRestoration='manual';
@@ -403,6 +377,7 @@ if(deepTarget){stop=LAST;cur=STOPS[LAST];intro.done=true;setTimeout(()=>deepTarg
 FX.lastMove=performance.now();
 loadA.then(()=>{sceneDirty=true;wake()});loadAll.then(()=>{sceneDirty=true;wake();if(staticMode)paintStills()});
 motionPreference();
+if(hashIndex>0){if(staticMode)sections[hashIndex].scrollIntoView({block:'start'});else window.scrollTo(0,storyTop()+hashIndex*viewH);}
 window.deck=Object.assign(API,{getState:()=>{const a=[...metrics.drawMs].sort((x,y)=>x-y);return{cur,vel,stop,shown,settled:settled(),phone:PHONE,reduced:staticMode,assetsReady,intro:intro.done,quality,canvas:[canvas.width,canvas.height],looping:!!raf,draws:metrics.draws,ticks:metrics.ticks,drawP95:a.length?+a[Math.floor(a.length*.95)].toFixed(2):0,hover:FX.hover&&FX.hover.id,hits:FX.hits.map(h=>({id:h.id,x:Math.round(h.x/dprNow()),y:Math.round(h.y/dprNow())}))}},go:i=>setStop(i),LAST,released:()=>stop===LAST&&settled()});
 window.chapterDeck=window.deck;
 })();

@@ -4,7 +4,7 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const hasGsap = !!window.gsap;
+const hasGsap = !!(window.gsap && window.ScrollTrigger);
 document.documentElement.classList.add('js');
 
 /* ───────── 1. The mark, split into four stacked layers ─────────
@@ -134,11 +134,11 @@ const unpre = () => document.documentElement.classList.remove('pre');
 const isMob = () => innerWidth <= 820;
 const fine = matchMedia('(hover: hover) and (pointer: fine)');
 
-// Smooth wheel only for mouse/trackpad desktops. Touch devices keep 100% native momentum scrolling.
+// Keep wheel and touch native; Lenis observes scrolling for interaction state.
 // Nothing ever calls scrollTo: no snapping, no settling, no re-sync jumps.
 let lenis = null;
 if (!reduce && window.Lenis && fine.matches) {
-  lenis = new Lenis({ duration: 1, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true, syncTouch: false });
+  lenis = new Lenis({ duration: 1, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: false, syncTouch: false });
   lenis.on('scroll', ScrollTrigger.update);
   ScrollTrigger.addEventListener('refresh', () => lenis.resize());
   // while the page moves, nothing under a resting cursor should hover, tilt or pop a tooltip
@@ -292,7 +292,7 @@ function init() {
 /* hero scroll: layers spread apart in depth, headline rises from behind them */
 let heroTL;
 function buildHero(staticEnd) {
-  if (heroTL) { heroTL.scrollTrigger && heroTL.scrollTrigger.kill(); heroTL.kill(); }
+  if (heroTL) heroTL.revert(); // Rebuild from the original pose, not the current scrubbed pose.
   const hero = $('#hero');
   const mob = () => isMob();
   const P = () => mob()
